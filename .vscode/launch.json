@@ -14,7 +14,8 @@
             "program": "${workspaceRoot}/vendor/bin/phpunit",
             "args": [
                 "${file}",
-                "--debug"
+                "--debug",
+                "--verbose"
             ],
             "cwd": "${workspaceRoot}",
             "runtimeArgs": [
@@ -31,7 +32,10 @@
             "type": "php",
             "request": "launch",
             "program": "${workspaceRoot}/vendor/bin/phpunit",
-            "args": [],
+            "args": [
+                "--debug",
+                "--verbose"
+            ],
             "cwd": "${workspaceRoot}",
             "runtimeArgs": [
                 "-dxdebug.mode=debug",

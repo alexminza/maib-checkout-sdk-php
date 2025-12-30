@@ -7,7 +7,9 @@
             "label": "phpunit tests",
             "type": "shell",
             "command": "vendor/bin/phpunit",
-            "args": [],
+            "args": [
+                "--verbose"
+            ],
             "group": {
                 "kind": "test",
                 "isDefault": true
