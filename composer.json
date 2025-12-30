@@ -1,6 +1,6 @@
 {
     "name": "alexminza/maib-checkout-sdk",
-    "description": "PHP SDK for maib Checkout API",
+    "description": "PHP SDK for maib e-Commerce Checkout API",
     "type": "library",
     "keywords": [
         "maib",

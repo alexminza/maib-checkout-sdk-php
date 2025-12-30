@@ -1,2 +1,2 @@
 # maib-checkout-sdk-php
-PHP SDK for maib Checkout API
+PHP SDK for maib e-Commerce Checkout API
