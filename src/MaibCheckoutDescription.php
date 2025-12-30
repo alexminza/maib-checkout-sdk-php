@@ -23,7 +23,7 @@ class MaibCheckoutDescription extends Description
 
         $description = [
             //'baseUrl' => 'https://api.maibmerchants.md/',
-            'name' => 'maib MIA QR API',
+            'name' => 'maib e-Commerce Checkout API',
             'apiVersion' => 'v2',
 
             'operations' => [
