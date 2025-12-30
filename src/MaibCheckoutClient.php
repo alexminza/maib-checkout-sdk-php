@@ -223,9 +223,7 @@ class MaibCheckoutClient extends GuzzleClient
 
         // Encode to Base64
         $result = base64_encode($computedHash);
-
-        // Return with sha256= prefix
-        return "sha256=$result";
+        return $result;
     }
     #endregion
 
