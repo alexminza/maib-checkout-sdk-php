@@ -151,13 +151,21 @@ class MaibCheckoutClient extends GuzzleClient
     #region Signature
     /**
      * Callback Payload Signature Key Verification
+     * @param string $callbackBody       Callback message (exact raw JSON body as string)
+     * @param string $signatureHeader    X-Signature header value
+     * @param string $signatureTimestamp X-Signature-Timestamp header value
+     * @param string $signatureKey       Merchant’s shared secret key
+     * @return bool True if signature is valid, false otherwise
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
     public static function validateCallbackSignature(string $callbackBody, string $signatureHeader, string $signatureTimestamp, string $signatureKey)
     {
         // Extract signature
-        $signature = substr($signatureHeader, strlen('sha256='));
+        $prefix = 'sha256=';
+        $signature = strpos($signatureHeader, $prefix) === 0
+            ? substr($signatureHeader, strlen($prefix))
+            : $signatureHeader;
 
         // Compute result signature
         $result = self::computeCallbackSignature($callbackBody, $signatureTimestamp, $signatureKey);
