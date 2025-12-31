@@ -159,7 +159,7 @@ class MaibCheckoutClient extends GuzzleClient
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
-    public static function validateCallbackSignature(string $callbackBody, string $signatureHeader, string $signatureTimestamp, string $signatureKey)
+    public static function validateCallbackSignature(string $callbackBody, string $signatureHeader, string $signatureTimestamp, string $signatureKey): bool
     {
         // Extract signature
         $prefix = 'sha256=';
@@ -184,7 +184,7 @@ class MaibCheckoutClient extends GuzzleClient
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
-    public static function computeCallbackSignature(string $callbackBody, string $signatureTimestamp, string $signatureKey)
+    public static function computeCallbackSignature(string $callbackBody, string $signatureTimestamp, string $signatureKey): string
     {
         // Build message: JSON + "." + timestamp
         $message = "$callbackBody.$signatureTimestamp";
