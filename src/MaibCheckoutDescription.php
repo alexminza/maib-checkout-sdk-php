@@ -294,9 +294,9 @@ class MaibCheckoutDescription extends Description
                         'referenceNumber' => ['type' => 'string'],
                         'senderIban' => ['type' => 'string'],
                         'senderName' => ['type' => 'string'],
-                        'providerType' => ['type' => 'string', 'enum' => ['QR', 'RTP', 'Card']], //TODO: providerType
+                        'providerType' => ['type' => 'string'], //TODO: providerType 'enum' => ['QR', 'MMC']
                         'mcc' => ['type' => 'string'],
-                        'type' => ['type' => 'string', 'enum' => ['MIA']], //TODO: type
+                        'type' => ['type' => 'string'], //TODO: type 'enum' => ['MIA']
 
                         'count' => ['type' => 'number'],
                         'offset' => ['type' => 'number'],
