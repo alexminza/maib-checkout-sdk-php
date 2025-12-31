@@ -27,8 +27,9 @@ class MaibCheckoutClient extends GuzzleClient
         ?DescriptionInterface $description = null,
         array $config = []
     ) {
-        $client = $client instanceof ClientInterface ? $client : new Client();
-        $description = $description instanceof DescriptionInterface ? $description : new MaibCheckoutDescription($config);
+        $client = $client ?? new Client();
+        $description = $description ?? new MaibCheckoutDescription($config);
+
         parent::__construct($client, $description, null, null, null, $config);
     }
 
