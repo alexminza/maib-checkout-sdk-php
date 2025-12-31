@@ -249,7 +249,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             'payerName' => 'TEST QR PAYMENT'
         ];
 
-        $response = $this->client->testPay($testPayData, self::$accessToken);
+        $response = $this->client->miaTestPay($testPayData, self::$accessToken);
         // $this->debugLog('testPay', $response);
 
         $this->assertResultOk($response);
