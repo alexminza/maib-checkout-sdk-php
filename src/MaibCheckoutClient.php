@@ -17,16 +17,8 @@ class MaibCheckoutClient extends GuzzleClient
     public const DEFAULT_BASE_URL = 'https://api.maibmerchants.md/';
     public const SANDBOX_BASE_URL = 'https://sandbox.maibmerchants.md/';
 
-    /**
-     * @param ClientInterface      $client
-     * @param DescriptionInterface $description
-     * @param array                $config
-     */
-    public function __construct(
-        ?ClientInterface $client = null,
-        ?DescriptionInterface $description = null,
-        array $config = []
-    ) {
+    public function __construct(?ClientInterface $client = null, ?DescriptionInterface $description = null, array $config = [])
+    {
         $client = $client ?? new Client();
         $description = $description ?? new MaibCheckoutDescription($config);
 
@@ -36,13 +28,10 @@ class MaibCheckoutClient extends GuzzleClient
     #region Auth
     /**
      * Obtain authentication token
-     * @param string $clientId
-     * @param string $clientSecret
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token
      * @link https://docs.maibmerchants.md/checkout/getting-started/api-fundamentals#authentication
      */
-    public function getToken($clientId, $clientSecret)
+    public function getToken(string $clientId, string $clientSecret): Result
     {
         $args = [
             'clientId' => $clientId,
@@ -56,12 +45,9 @@ class MaibCheckoutClient extends GuzzleClient
     #region Checkout
     /**
      * Register a new hosted checkout session
-     * @param array  $checkoutData
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session
      */
-    public function checkoutRegister($checkoutData, $authToken)
+    public function checkoutRegister(array $checkoutData, string $authToken): Result
     {
         $args = $checkoutData;
         self::setBearerAuthToken($args, $authToken);
@@ -70,12 +56,9 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Cancel a checkout session
-     * @param string $checkoutId
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/cancel-a-checkout-session
      */
-    public function checkoutCancel($checkoutId, $authToken)
+    public function checkoutCancel(string $checkoutId, string $authToken): Result
     {
         $args = [
             'checkoutId' => $checkoutId,
@@ -87,12 +70,9 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Get checkout details
-     * @param string $checkoutId
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details
      */
-    public function checkoutDetails($checkoutId, $authToken)
+    public function checkoutDetails(string $checkoutId, string $authToken): Result
     {
         $args = [
             'checkoutId' => $checkoutId,
@@ -104,12 +84,9 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Retrieve all checkouts
-     * @param array $checkoutListData
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts
      */
-    public function checkoutList($checkoutListData, $authToken)
+    public function checkoutList(array $checkoutListData, string $authToken): Result
     {
         $args = $checkoutListData;
         self::setBearerAuthToken($args, $authToken);
@@ -120,12 +97,9 @@ class MaibCheckoutClient extends GuzzleClient
     #region Payment
     /**
      * Get payment by id
-     * @param string $paymentId
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-payment-by-id
      */
-    public function paymentDetails($paymentId, $authToken)
+    public function paymentDetails(string $paymentId, string $authToken): Result
     {
         $args = [
             'paymentId' => $paymentId,
@@ -137,12 +111,9 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Retrieve all payments by filter
-     * @param array $paymentListData
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter
      */
-    public function paymentList($paymentListData, $authToken)
+    public function paymentList(array $paymentListData, string $authToken): Result
     {
         $args = $paymentListData;
         self::setBearerAuthToken($args, $authToken);
@@ -151,13 +122,9 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Refund a payment
-     * @param string $paymentId
-     * @param array $refundData
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment
      */
-    public function paymentRefund($paymentId, $refundData, $authToken)
+    public function paymentRefund(string $paymentId, array $refundData, string $authToken): Result
     {
         $args = $refundData;
         $args['paymentId'] = $paymentId;
@@ -170,12 +137,9 @@ class MaibCheckoutClient extends GuzzleClient
     #region Payment Simulation
     /**
      * Payment Simulation (Sandbox)
-     * @param array $testPayData
-     * @param string $authToken
-     * @return \GuzzleHttp\Command\Result
      * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
      */
-    public function miaTestPay($testPayData, $authToken)
+    public function miaTestPay(array $testPayData, string $authToken): Result
     {
         $args = $testPayData;
 
@@ -187,14 +151,10 @@ class MaibCheckoutClient extends GuzzleClient
     #region Signature
     /**
      * Callback Payload Signature Key Verification
-     * @param string $callbackBody
-     * @param string $signatureHeader
-     * @param string $signatureTimestamp
-     * @param string $signatureKey
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
-    public static function validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey)
+    public static function validateCallbackSignature(string $callbackBody, string $signatureHeader, string $signatureTimestamp, string $signatureKey)
     {
         // Extract signature
         $signature = substr($signatureHeader, strlen('sha256='));
@@ -208,13 +168,10 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Compute Payload Signature
-     * @param string $callbackBody
-     * @param string $signatureTimestamp
-     * @param string $signatureKey
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
-    public static function computeCallbackSignature($callbackBody, $signatureTimestamp, $signatureKey)
+    public static function computeCallbackSignature(string $callbackBody, string $signatureTimestamp, string $signatureKey)
     {
         // Build message: JSON + "." + timestamp
         $message = "$callbackBody.$signatureTimestamp";
@@ -229,10 +186,6 @@ class MaibCheckoutClient extends GuzzleClient
     #endregion
 
     #region Util
-    /**
-     * @param array  $args
-     * @param string $authToken
-     */
     private static function setBearerAuthToken(&$args, $authToken)
     {
         $args['authToken'] = "Bearer $authToken";
