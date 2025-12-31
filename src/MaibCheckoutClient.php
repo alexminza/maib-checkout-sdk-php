@@ -167,6 +167,11 @@ class MaibCheckoutClient extends GuzzleClient
             ? substr($signatureHeader, strlen($prefix))
             : '';
 
+        // Validate required data exists
+        if (empty($callbackBody) || empty($callbackSignature)) {
+            return false;
+        }
+
         // Compute result signature
         $computedSignature = self::computeCallbackSignature($callbackBody, $signatureTimestamp, $signatureKey);
 
