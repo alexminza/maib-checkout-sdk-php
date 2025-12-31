@@ -7,10 +7,26 @@ use Composer\InstalledVersions;
 
 class MaibCheckoutDescription extends Description
 {
+    private const PACKAGE_NAME = 'alexminza/maib-checkout-sdk';
+    private const DEFAULT_VERSION = 'dev';
+
+    private static function detectVersion(): string
+    {
+        if (!class_exists(InstalledVersions::class)) {
+            return self::DEFAULT_VERSION;
+        }
+
+        if (!InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
+            return self::DEFAULT_VERSION;
+        }
+
+        return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME)
+            ?? self::DEFAULT_VERSION;
+    }
+
     public function __construct(array $options = [])
     {
-        $package = 'alexminza/maib-checkout-sdk';
-        $version = InstalledVersions::getPrettyVersion($package) ?? 'dev';
+        $version = self::detectVersion();
         $userAgent = "maib-checkout-sdk-php/$version";
 
         $authorizationHeader = [
