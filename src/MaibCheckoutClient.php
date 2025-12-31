@@ -163,15 +163,15 @@ class MaibCheckoutClient extends GuzzleClient
     {
         // Extract signature
         $prefix = 'sha256=';
-        $signature = strpos($signatureHeader, $prefix) === 0
+        $callbackSignature = strpos($signatureHeader, $prefix) === 0
             ? substr($signatureHeader, strlen($prefix))
-            : $signatureHeader;
+            : '';
 
         // Compute result signature
-        $result = self::computeCallbackSignature($callbackBody, $signatureTimestamp, $signatureKey);
+        $computedSignature = self::computeCallbackSignature($callbackBody, $signatureTimestamp, $signatureKey);
 
         // Compare the result with the signature
-        return hash_equals($result, $signature);
+        return hash_equals($computedSignature, $callbackSignature);
     }
 
     /**
