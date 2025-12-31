@@ -1,5 +1,7 @@
 # PHP SDK for maib e-Commerce Checkout API
 
+![maib e-Commerce Checkout](https://repository-images.githubusercontent.com/1125238716/a3cef907-c160-4575-9339-0cce7c89f295)
+
 * maib e-Commerce Checkout API docs: https://docs.maibmerchants.md/checkout
 * GitHub project https://github.com/alexminza/maib-checkout-sdk-php
 * Composer package https://packagist.org/packages/alexminza/maib-checkout-sdk
