@@ -9,8 +9,7 @@
         "checkout",
         "payments",
         "api",
-        "sdk",
-        "php"
+        "sdk"
     ],
     "homepage": "https://github.com/alexminza/maib-checkout-sdk-php",
     "license": "GPL-3.0-or-later",
