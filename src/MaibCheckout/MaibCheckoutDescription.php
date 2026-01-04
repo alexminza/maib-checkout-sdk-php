@@ -195,6 +195,7 @@ class MaibCheckoutDescription extends Description
                         'clientSecret' => ['type' => 'string', 'required' => true],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#request
                 'CheckoutRegisterDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -216,6 +217,7 @@ class MaibCheckoutDescription extends Description
                         'failUrl' => ['type' => 'string'],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#orderinfo-object
                 'OrderInfoDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -237,6 +239,7 @@ class MaibCheckoutDescription extends Description
                         ]
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#orderinfo.items
                 'OrderInfoItemDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -249,6 +252,7 @@ class MaibCheckoutDescription extends Description
                         'displayOrder' => ['type' => 'integer'],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#payerinfo-object
                 'PayerInfoDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -260,15 +264,17 @@ class MaibCheckoutDescription extends Description
                         'userAgent' => ['type' => 'string', 'required' => true],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment#request
                 'RefundDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
                     'properties' => [
-                        'amount' => ['type' => 'number'],
+                        'amount' => ['type' => 'number', 'required' => true],
                         'reason' => ['type' => 'string', 'required' => true],
                         'callbackUrl' => ['type' => 'string'],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts#request
                 'CheckoutListDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -291,6 +297,7 @@ class MaibCheckoutDescription extends Description
                         'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter#request
                 'PaymentListDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -320,6 +327,7 @@ class MaibCheckoutDescription extends Description
                         'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                     ],
                 ],
+                // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox#request-parameters-body-json
                 'MiaTestPayDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
