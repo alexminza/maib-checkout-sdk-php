@@ -193,8 +193,7 @@ class MaibCheckoutClient extends GuzzleClient
         $computedHash = hash_hmac('sha256', $message, $signatureKey, true);
 
         // Encode to Base64
-        $result = base64_encode($computedHash);
-        return $result;
+        return base64_encode($computedHash);
     }
     #endregion
 
