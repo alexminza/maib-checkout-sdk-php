@@ -187,6 +187,7 @@ class MaibCheckoutDescription extends Description
                         'location' => 'json'
                     ]
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token#request-parameters-body
                 'AuthTokenDto' => [
                     'type' => 'object',
                     'additionalProperties' => false,
