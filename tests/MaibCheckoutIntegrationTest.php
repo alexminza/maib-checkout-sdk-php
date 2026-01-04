@@ -20,6 +20,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $accessToken;
     protected static $checkoutId;
     protected static $checkoutData;
+    protected static $qrId;
     protected static $paymentId;
 
     /**
@@ -242,7 +243,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->markTestSkipped();
 
         $testPayData = [
-            'qrId' => null, //TODO: qrId
+            'qrId' => self::$qrId,
             'amount' => self::$checkoutData['amount'],
             'currency' => self::$checkoutData['currency'],
             'iban' => 'MD88AG000000011621810140',
@@ -253,7 +254,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         // $this->debugLog('testPay', $response);
 
         $this->assertResultOk($response);
-        $this->assertEquals(null, $response['result']['qrId']); //TODO: qrId
+        $this->assertEquals(self::$qrId, $response['result']['qrId']);
         $this->assertEquals('Paid', $response['result']['qrStatus']);
         $this->assertEquals(self::$checkoutData['amount'], $response['result']['amount']);
         $this->assertEquals(self::$checkoutData['currency'], $response['result']['currency']);
