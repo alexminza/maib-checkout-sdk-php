@@ -13,6 +13,10 @@ composer.phar
 .env.*
 !.env.example
 
+# Tests
+/tests/*
+!/tests/*.php
+
 # PHPUnit
 /.phpunit.cache
 .phpunit.result.cache
