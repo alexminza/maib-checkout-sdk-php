@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="custom">
+	<!-- Configs -->
+	<config name="testVersion" value="7.2-" />
+
+    <!-- Rules -->
+    <!-- Run against the PHPCompatibility ruleset -->
+    <!-- <rule ref="PHPCompatibility">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule> -->
+
+    <!-- Customize -->
+    <rule ref="Generic">
+        <exclude name="Generic.Files.LineLength.TooLong" />
+        <exclude name="Generic.Files.LineLength.MaxExceeded" />
+        <exclude name="Generic.Files.EndFileNoNewline.Found" />
+        <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSame" />
+        <exclude name="Generic.Formatting.SpaceAfterNot.Incorrect" />
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed" />
+        <exclude name="Generic.Classes.OpeningBraceSameLine.BraceOnNewLine" />
+        <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine" />
+        <exclude name="Generic.Commenting.DocComment.MissingShort" />
+        <exclude name="Generic.PHP.UpperCaseConstant.Found" />
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
+    </rule>
+
+    <rule ref="Generic.Files.LowercasedFilename.NotFound">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Generic.PHP.ClosingPHPTag.NotFound">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Generic.PHP.RequireStrictTypes.MissingDeclaration">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName.ScopeNotCamelCaps">
+        <type>warning</type>
+    </rule>
+
+    <rule ref="Generic.Commenting.DocComment.ShortNotCapital">
+        <type>warning</type>
+    </rule>
+</ruleset>

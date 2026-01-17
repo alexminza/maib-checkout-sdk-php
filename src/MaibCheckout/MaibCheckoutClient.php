@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Maib\MaibCheckout;
 
 use GuzzleHttp\Client;
@@ -10,6 +12,7 @@ use GuzzleHttp\Command\Result;
 
 /**
  * maib e-Commerce Checkout API client
+ *
  * @link https://docs.maibmerchants.md/checkout
  */
 class MaibCheckoutClient extends GuzzleClient
@@ -28,6 +31,7 @@ class MaibCheckoutClient extends GuzzleClient
     #region Auth
     /**
      * Obtain authentication token
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token
      * @link https://docs.maibmerchants.md/checkout/getting-started/api-fundamentals#authentication
      */
@@ -45,6 +49,7 @@ class MaibCheckoutClient extends GuzzleClient
     #region Checkout
     /**
      * Register a new hosted checkout session
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session
      */
     public function checkoutRegister(array $checkoutData, string $authToken): Result
@@ -56,6 +61,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Cancel a checkout session
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/cancel-a-checkout-session
      */
     public function checkoutCancel(string $checkoutId, string $authToken): Result
@@ -70,6 +76,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Get checkout details
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details
      */
     public function checkoutDetails(string $checkoutId, string $authToken): Result
@@ -84,6 +91,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Retrieve all checkouts
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts
      */
     public function checkoutList(array $checkoutListData, string $authToken): Result
@@ -97,6 +105,7 @@ class MaibCheckoutClient extends GuzzleClient
     #region Payment
     /**
      * Get payment by id
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-payment-by-id
      */
     public function paymentDetails(string $paymentId, string $authToken): Result
@@ -111,6 +120,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Retrieve all payments by filter
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter
      */
     public function paymentList(array $paymentListData, string $authToken): Result
@@ -122,6 +132,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Refund a payment
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment
      */
     public function paymentRefund(string $paymentId, array $refundData, string $authToken): Result
@@ -137,6 +148,7 @@ class MaibCheckoutClient extends GuzzleClient
     #region Payment Simulation
     /**
      * Payment Simulation (Sandbox)
+     *
      * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
      */
     public function miaTestPay(array $testPayData, string $authToken): Result
@@ -151,11 +163,14 @@ class MaibCheckoutClient extends GuzzleClient
     #region Signature
     /**
      * Callback Payload Signature Key Verification
+     *
      * @param string $callbackBody       Callback message (exact raw JSON body as string)
      * @param string $signatureHeader    X-Signature header value
      * @param string $signatureTimestamp X-Signature-Timestamp header value
      * @param string $signatureKey       Merchant’s shared secret key
+     *
      * @return bool True if signature is valid, false otherwise
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */
@@ -181,6 +196,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     /**
      * Compute Payload Signature
+     *
      * @link https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
      * @link https://docs.maibmerchants.md/checkout/api-reference/examples/signature-key-verification
      */

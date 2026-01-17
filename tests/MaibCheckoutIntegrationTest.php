@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Maib\MaibCheckout\Tests;
 
 use Maib\MaibCheckout\MaibCheckoutClient;
@@ -375,7 +377,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
         $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureTimestamp = time();
+        $signatureTimestamp = (string) time();
 
         $signature = MaibCheckoutClient::computeCallbackSignature($callbackBody, $signatureTimestamp, self::$signatureKey);
         $signatureHeader = "sha256=$signature";
