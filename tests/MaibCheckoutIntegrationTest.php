@@ -369,16 +369,15 @@ class MaibCheckoutIntegrationTest extends TestCase
     #endregion
 
     #region Signature
-    // const CALLBACK_EXAMPLE = '{"checkoutId":"5a4d27a4-79f5-426b-9403-cccdeee81747","paymentIntentId":"baa2a48d-b3ba-48b8-917e-07607d447c4f","merchantId":"37e48a96-37d7-49b3-8373-2e7e69ef8c2e","terminalId":"23456543","amount":193.54,"currency":"MDL","completedAt":"2024-11-23T19:35:00.6772285+02:00","payerName":"John","payerEmail":"Smith","payerPhone":"37368473653","payerIp":"192.175.12.22","orderId":"1142353","orderDescription":"OrderDescriptiondda760d7-a318-451b-8e47-f3377c06dcf5","orderDeliveryAmount":92.65,"orderDeliveryCurrency":8,"paymentId":"379b31a3-8283-43d4-8a7b-eef8c0736a32","paymentAmount":64.76,"paymentCurrency":"MDL","paymentStatus":"Executed","paymentExecutedAt":"2025-05-05T23:38:07.2760698+03:00","providerType":"Ips","senderIban":"NL43RABO1438227787","senderName":"Steven","senderCardNumber":"444433******1111","retrievalReferenceNumber":"ABC324353245"}';
-    const CALLBACK_EXAMPLE = '{"checkoutId":"cce561e0-c977-4530-bf9d-0ffc32207688","paymentIntentId":"cce561e0-c977-4530-bf9d-0ffc32207688","merchantId":"09385b54-749f-44d8-b06f-fd7500493510","terminalId":null,"amount":312.00,"currency":498,"completedAt":"2026-01-24T10:50:58.3102718+00:00","payerName":"Alexander Minza","payerEmail":"alex_minza@hotmail.com","payerPhone":"069123456","payerIp":"192.168.65.1","orderId":"245","orderDescription":"Order #245","orderDeliveryAmount":null,"orderDeliveryCurrency":null,"paymentId":"b689e39e-d8f5-44fa-81e2-d6848e9cfd1b","paymentAmount":312.00,"paymentCurrency":498,"paymentStatus":"Executed","paymentExecutedAt":"2026-01-24T10:50:58.1330927+00:00","providerType":"QR","senderIban":"MD88AG000000011621810140","senderName":"John D.","senderCardNumber":null,"retrievalReferenceNumber":"C88A63FE7017692","processingStatus":null,"processingStatusCode":null,"approvalCode":null,"threeDsResult":null,"threeDsReason":null,"paymentMethod":"MiaQr","providerExternalStatus":null}';
+    const CALLBACK_EXAMPLE = '{"checkoutId":"5a4d27a4-79f5-426b-9403-cccdeee81747","paymentIntentId":"baa2a48d-b3ba-48b8-917e-07607d447c4f","merchantId":"37e48a96-37d7-49b3-8373-2e7e69ef8c2e","terminalId":"23456543","amount":193.54,"currency":"MDL","completedAt":"2024-11-23T19:35:00.6772285+02:00","payerName":"John","payerEmail":"Smith","payerPhone":"37368473653","payerIp":"192.175.12.22","orderId":"1142353","orderDescription":"OrderDescriptiondda760d7-a318-451b-8e47-f3377c06dcf5","orderDeliveryAmount":92.65,"orderDeliveryCurrency":8,"paymentId":"379b31a3-8283-43d4-8a7b-eef8c0736a32","paymentAmount":64.76,"paymentCurrency":"MDL","paymentStatus":"Executed","paymentExecutedAt":"2025-05-05T23:38:07.2760698+03:00","providerType":"Ips","senderIban":"NL43RABO1438227787","senderName":"Steven","senderCardNumber":"444433******1111","retrievalReferenceNumber":"ABC324353245"}';
 
     public function testValidateCallbackSignatureExample()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
         $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureHeader = 'sha256=PvTN9W71tw0iFYvCCTZ7Od4SYckSv1iS7OPkkbUmfvM=';
-        $signatureTimestamp = '1769251858951';
-        $signatureKey = 'c0c7658c-5187-45e9-8dc3-b8e50a246cf1';
+        $signatureHeader = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
+        $signatureTimestamp = '1761032516817';
+        $signatureKey = '67be8e54-ac28-485d-9369-27f6d3c55a27';
 
         //NOTE: maib official example test is failing
         $this->assertFalse(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey));
