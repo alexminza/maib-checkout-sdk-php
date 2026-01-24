@@ -272,7 +272,8 @@ class MaibCheckoutDescription extends Description
                     'type' => 'object',
                     'additionalProperties' => false,
                     'properties' => [
-                        'amount' => ['type' => 'number', 'required' => true],
+                        // https://docs.maibmerchants.md/mia-qr-api/en/endpoints/payment-refund/refund-completed-payment#request-parameters
+                        'amount' => ['type' => 'number'], // 'required' => true
                         'reason' => ['type' => 'string', 'required' => true],
                         'callbackUrl' => ['type' => 'string'],
                     ],
