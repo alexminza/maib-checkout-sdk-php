@@ -37,8 +37,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         self::$clientId     = getenv('MAIB_CHECKOUT_CLIENT_ID');
         self::$clientSecret = getenv('MAIB_CHECKOUT_CLIENT_SECRET');
         self::$signatureKey = getenv('MAIB_CHECKOUT_SIGNATURE_KEY');
-        self::$callbackUrl  = getenv('MAIB_CHECKOUT_CALLBACK_URL') ?? 'https://example.com';
-        self::$baseUrl      = getenv('MAIB_CHECKOUT_BASE_URL') ?? MaibCheckoutClient::SANDBOX_BASE_URL;
+        self::$callbackUrl  = getenv('MAIB_CHECKOUT_CALLBACK_URL') ?: 'https://example.com';
+        self::$baseUrl      = getenv('MAIB_CHECKOUT_BASE_URL') ?: MaibCheckoutClient::SANDBOX_BASE_URL;
 
         if (empty(self::$clientId) || empty(self::$clientSecret) || empty(self::$signatureKey)) {
             self::markTestSkipped('Integration test credentials not provided.');
