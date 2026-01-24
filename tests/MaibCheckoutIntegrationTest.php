@@ -16,11 +16,13 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $clientId;
     protected static $clientSecret;
     protected static $signatureKey;
+    protected static $callbackUrl;
     protected static $baseUrl;
 
     // Shared state
     protected static $accessToken;
     protected static $checkoutId;
+    protected static $checkoutUrl;
     protected static $checkoutData;
     protected static $qrId;
     protected static $paymentId;
@@ -35,6 +37,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         self::$clientId = getenv('MAIB_CHECKOUT_CLIENT_ID');
         self::$clientSecret = getenv('MAIB_CHECKOUT_CLIENT_SECRET');
         self::$signatureKey = getenv('MAIB_CHECKOUT_SIGNATURE_KEY');
+        self::$callbackUrl  = getenv('MAIB_CHECKOUT_CALLBACK_URL');
         self::$baseUrl = MaibCheckoutClient::SANDBOX_BASE_URL;
 
         if (!self::$clientId || !self::$clientSecret || !self::$signatureKey) {
@@ -167,9 +170,9 @@ class MaibCheckoutIntegrationTest extends TestCase
                 'userAgent' => 'Mozilla/5.0',
             ],
             'language' => 'ro',
-            'callbackUrl' => 'https://example.com/path',
-            'successUrl' => 'https://example.com/path',
-            'failUrl' => 'https://example.com/path',
+            'callbackUrl' => self::$callbackUrl . '/callback',
+            'successUrl' => self::$callbackUrl . '/success',
+            'failUrl' => self::$callbackUrl . '/fail',
         ];
 
         $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
@@ -179,10 +182,12 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->assertNotEmpty($response['result']['checkoutId']);
         $this->assertNotEmpty($response['result']['checkoutUrl']);
 
-        $this->debugLog('checkoutUrl', $response['result']['checkoutUrl']);
-
         self::$checkoutId = $response['result']['checkoutId'];
+        self::$checkoutUrl = $response['result']['checkoutUrl'];
         self::$checkoutData = $checkoutData;
+
+        $this->debugLog('checkoutUrl', self::$checkoutUrl);
+        exec('open ' . self::$checkoutUrl);
     }
 
     /**
@@ -205,6 +210,8 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testCheckoutCancel()
     {
+        $this->markTestSkipped();
+
         $response = $this->client->checkoutCancel(self::$checkoutId, self::$accessToken);
         // $this->debugLog('checkoutCancel', $response);
 
@@ -245,6 +252,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testMiaTestPay()
     {
         $this->markTestSkipped();
+        // fgets(STDIN);
 
         $testPayData = [
             'qrId' => self::$qrId,
@@ -311,7 +319,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         $refundData = [
             'amount' => self::$checkoutData['amount'] / 2,
             'reason' => 'testPaymentRefundPartial reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -329,7 +337,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     {
         $refundData = [
             'reason' => 'testPaymentRefundFull reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -349,7 +357,7 @@ class MaibCheckoutIntegrationTest extends TestCase
 
         $refundData = [
             'reason' => 'testRefundPaymentError reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
