@@ -223,7 +223,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            // 'sortBy' => 'createdAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
+            'sortBy' => 'CreatedAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
             'order' => 'desc'
         ];
 
@@ -239,6 +239,8 @@ class MaibCheckoutIntegrationTest extends TestCase
     #region Payment
     /**
      * @depends testCheckoutRegister
+     *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
      */
     public function testMiaTestPay()
     {
