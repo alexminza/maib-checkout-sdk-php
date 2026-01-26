@@ -149,6 +149,7 @@ class MaibCheckoutClient extends GuzzleClient
     /**
      * Payment Simulation (Sandbox)
      *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
      * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
      */
     public function miaTestPay(array $testPayData, string $authToken): Result
