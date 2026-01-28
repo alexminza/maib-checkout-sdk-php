@@ -191,6 +191,29 @@ class MaibCheckoutIntegrationTest extends TestCase
     }
 
     /**
+     * @depends testAuthenticate
+     */
+    public function testCheckoutRegisterValidationError()
+    {
+        $checkoutData = [
+            'amount' => 50.61,
+            'currencyABC' => 'MDL', // Invalid field
+            'callbackUrl' => 'https://example.com/callback',
+        ];
+
+        try {
+            $this->expectException(\GuzzleHttp\Command\Exception\CommandException::class);
+            $this->expectExceptionMessage('[currency] is a required string');
+
+            $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
+            $this->debugLog('checkoutRegister', $response);
+        } catch(\Exception $ex) {
+            $this->debugLog('checkoutRegister', $ex->getMessage());
+            throw $ex;
+        }
+    }
+
+    /**
      * @depends testCheckoutRegister
      */
     public function testCheckoutDetails()
