@@ -75,7 +75,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             // https://github.com/guzzle/guzzle/issues/2185
             if ($t instanceof \GuzzleHttp\Command\Exception\CommandException) {
                 $response = $t->getResponse();
-                $responseBody = (string) $response->getBody();
+                $responseBody = !empty($response) ? (string) $response->getBody() : '';
                 $exceptionMessage = $t->getMessage();
 
                 $this->debugLog($responseBody, $exceptionMessage);
@@ -233,8 +233,6 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testCheckoutCancel()
     {
-        $this->markTestSkipped();
-
         $response = $this->client->checkoutCancel(self::$checkoutId, self::$accessToken);
         // $this->debugLog('checkoutCancel', $response);
 
@@ -274,7 +272,7 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testMiaTestPay()
     {
-        $this->markTestSkipped(); //TODO
+        $this->markTestSkipped('miaTestPay cannot be automated yet - missing checkout session payment intent qrId'); //TODO
         // fgets(STDIN);
 
         $testPayData = [
