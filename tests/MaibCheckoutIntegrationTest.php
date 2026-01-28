@@ -198,7 +198,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         $checkoutData = [
             'amount' => 50.61,
             'currencyABC' => 'MDL', // Invalid field
-            'callbackUrl' => 'https://example.com/callback',
+            'callbackUrl' => self::$callbackUrl . '/callback',
         ];
 
         try {
