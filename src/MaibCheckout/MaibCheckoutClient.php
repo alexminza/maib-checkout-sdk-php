@@ -67,7 +67,7 @@ class MaibCheckoutClient extends GuzzleClient
     public function checkoutCancel(string $checkoutId, string $authToken): Result
     {
         $args = [
-            'checkoutId' => $checkoutId,
+            'id' => $checkoutId,
         ];
 
         self::setBearerAuthToken($args, $authToken);
@@ -82,7 +82,7 @@ class MaibCheckoutClient extends GuzzleClient
     public function checkoutDetails(string $checkoutId, string $authToken): Result
     {
         $args = [
-            'checkoutId' => $checkoutId,
+            'id' => $checkoutId,
         ];
 
         self::setBearerAuthToken($args, $authToken);
@@ -111,7 +111,7 @@ class MaibCheckoutClient extends GuzzleClient
     public function paymentDetails(string $paymentId, string $authToken): Result
     {
         $args = [
-            'paymentId' => $paymentId,
+            'id' => $paymentId,
         ];
 
         self::setBearerAuthToken($args, $authToken);
@@ -138,7 +138,7 @@ class MaibCheckoutClient extends GuzzleClient
     public function paymentRefund(string $paymentId, array $refundData, string $authToken): Result
     {
         $args = $refundData;
-        $args['paymentId'] = $paymentId;
+        $args['payId'] = $paymentId;
 
         self::setBearerAuthToken($args, $authToken);
         return parent::paymentRefund($args);
