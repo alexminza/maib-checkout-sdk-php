@@ -564,7 +564,7 @@ class MaibCheckoutDescription extends Description
                 #endregion
 
                 #region Payment Simulation Operations
-                // https://docs.maibmerchants.md/mia-qr-api/en/endpoints/information-retrieval-get/display-list-of-qr-codes-with-filtering-options
+                // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
                 'miaTestPay' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
@@ -591,9 +591,13 @@ class MaibCheckoutDescription extends Description
     private static function getProperties(array $models, string $modelName, string $location = 'json'): array
     {
         $props = $models[$modelName]['properties'] ?? [];
-        foreach ($props as &$prop) {
+        $result = [];
+
+        foreach ($props as $name => $prop) {
             $prop['location'] = $location;
+            $result[$name] = $prop;
         }
-        return $props;
+
+        return $result;
     }
 }
