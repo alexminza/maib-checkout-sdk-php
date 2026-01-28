@@ -108,7 +108,7 @@ class MaibCheckoutDescription extends Description
                     'title' => ['type' => 'string', 'required' => true],
                     'amount' => ['type' => 'number', 'required' => true],
                     'currency' => ['type' => 'string', 'required' => true],
-                    'quantity' => ['type' => 'number', 'required' => true],
+                    'quantity' => ['type' => 'integer', 'required' => true],
                     'displayOrder' => ['type' => 'integer'],
                 ],
             ],
@@ -147,8 +147,8 @@ class MaibCheckoutDescription extends Description
                     'createdAtTo' => ['type' => 'string', 'format' => 'date-time'],
                     'expiresAtFrom' => ['type' => 'string', 'format' => 'date-time'],
                     'expiresAtTo' => ['type' => 'string', 'format' => 'date-time'],
-                    'count' => ['type' => 'number'],
-                    'offset' => ['type' => 'number'],
+                    'count' => ['type' => 'integer'],
+                    'offset' => ['type' => 'integer'],
                     'sortBy' => ['type' => 'string'], //TODO: 'enum' => ['id', 'orderId', 'status', 'amount', 'currency', 'language', 'createdAt', 'expiresAt']
                     'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                 ],
@@ -175,8 +175,8 @@ class MaibCheckoutDescription extends Description
                     'providerType' => ['type' => 'string'],
                     'mcc' => ['type' => 'string'],
                     'type' => ['type' => 'string'],
-                    'count' => ['type' => 'number'],
-                    'offset' => ['type' => 'number'],
+                    'count' => ['type' => 'integer'],
+                    'offset' => ['type' => 'integer'],
                     'sortBy' => ['type' => 'string', 'enum' => ['paymentId', 'paymentIntentId', 'terminalId', 'amount', 'currency', 'orderId', 'note', 'status', 'executedAt', 'recipientIban', 'referenceNumber', 'senderIban', 'senderName', 'providerType', 'mcc', 'type']],
                     'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                 ],
@@ -210,6 +210,7 @@ class MaibCheckoutDescription extends Description
                 ],
 
                 #region Authentication Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token
                 'getToken' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
@@ -221,6 +222,7 @@ class MaibCheckoutDescription extends Description
                 #endregion
 
                 #region Checkout Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session
                 'checkoutRegister' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
@@ -231,6 +233,7 @@ class MaibCheckoutDescription extends Description
                         'authToken' => $authorizationHeader,
                     ], self::getProperties($models, 'CheckoutRegisterDto')),
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/cancel-a-checkout-session
                 'checkoutCancel' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
@@ -242,6 +245,7 @@ class MaibCheckoutDescription extends Description
                         'checkoutId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details
                 'checkoutDetails' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
@@ -253,6 +257,7 @@ class MaibCheckoutDescription extends Description
                         'checkoutId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts
                 'checkoutList' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
@@ -266,6 +271,7 @@ class MaibCheckoutDescription extends Description
                 #endregion
 
                 #region Payment Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-payment-by-id
                 'paymentDetails' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
@@ -277,6 +283,7 @@ class MaibCheckoutDescription extends Description
                         'paymentId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter
                 'paymentList' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
@@ -287,6 +294,7 @@ class MaibCheckoutDescription extends Description
                         'authToken' => $authorizationHeader,
                     ], self::getProperties($models, 'PaymentListDto', 'query')),
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment
                 'paymentRefund' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
@@ -301,6 +309,7 @@ class MaibCheckoutDescription extends Description
                 #endregion
 
                 #region Payment Simulation Operations
+                // https://docs.maibmerchants.md/mia-qr-api/en/endpoints/information-retrieval-get/display-list-of-qr-codes-with-filtering-options
                 'miaTestPay' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
