@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Maib\MaibCheckout;
 
 use GuzzleHttp\Command\Guzzle\Description;
@@ -7,7 +9,7 @@ use Composer\InstalledVersions;
 
 class MaibCheckoutDescription extends Description
 {
-    private const PACKAGE_NAME = 'alexminza/maib-checkout-sdk';
+    private const PACKAGE_NAME    = 'alexminza/maib-checkout-sdk';
     private const DEFAULT_VERSION = 'dev';
 
     private static function detectVersion(): string
@@ -26,7 +28,7 @@ class MaibCheckoutDescription extends Description
 
     public function __construct(array $options = [])
     {
-        $version = self::detectVersion();
+        $version   = self::detectVersion();
         $userAgent = "maib-checkout-sdk-php/$version";
 
         $authorizationHeader = [
@@ -37,8 +39,410 @@ class MaibCheckoutDescription extends Description
             'required' => true,
         ];
 
+        $models = [
+            #region Generic Models
+            'getResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'additionalProperties' => [
+                    'location' => 'json'
+                ]
+            ],
+            #endregion
+
+            #region Schema-based Models
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token#request-parameters-body
+            'GenerateTokenRequest' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'clientId' => ['type' => 'string', 'required' => true],
+                    'clientSecret' => ['type' => 'string', 'required' => true],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#request
+            'CreateCheckoutRequest' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'amount' => ['type' => 'number', 'required' => true],
+                    'currency' => ['type' => 'string', 'required' => true],
+                    'orderInfo' => [
+                        'type' => 'object',
+                        '$ref' => 'OrderInfo',
+                    ],
+                    'payerInfo' => [
+                        'type' => 'object',
+                        '$ref' => 'PayerDto',
+                    ],
+                    'language' => ['type' => 'string'],
+                    'callbackUrl' => ['type' => 'string'],
+                    'successUrl' => ['type' => 'string'],
+                    'failUrl' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#orderinfo-object
+            'OrderInfo' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'description' => ['type' => 'string'],
+                    'date' => ['type' => 'string', 'format' => 'date-time'],
+                    'orderAmount' => ['type' => 'number'],
+                    'orderCurrency' => ['type' => 'string'],
+                    'deliveryAmount' => ['type' => 'number'],
+                    'deliveryCurrency' => ['type' => 'string'],
+                    'items' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            '$ref' => 'OrderItemDto',
+                        ],
+                    ]
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#orderinfo.items
+            'OrderItemDto' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'externalId' => ['type' => 'string'],
+                    'title' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'quantity' => ['type' => 'number'],
+                    'displayOrder' => ['type' => 'integer'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#payerinfo-object
+            'PayerDto' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                    'email' => ['type' => 'string'],
+                    'phone' => ['type' => 'string'],
+                    'ip' => ['type' => 'string'],
+                    'userAgent' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment#request
+            'CreateRefundRequest' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'amount' => ['type' => 'number'],
+                    'reason' => ['type' => 'string'],
+                    'callbackUrl' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts#request
+            'GetAllCheckoutsRequest' => [
+                'type' => 'object',
+                'location' => 'query',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'orderId' => ['type' => 'string'],
+                    'status' => ['type' => 'string', 'enum' => ['WaitingForInit', 'Initialized', 'PaymentMethodSelected', 'Completed', 'Expired', 'Abandoned', 'Cancelled', 'Failed']],
+                    'minAmount' => ['type' => 'number'],
+                    'maxAmount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'language' => ['type' => 'string'],
+                    'createdAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'createdAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'expiresAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'expiresAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'count' => ['type' => 'integer'],
+                    'offset' => ['type' => 'integer'],
+                    'sortBy' => ['type' => 'string'],
+                    'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
+                ],
+                'additionalProperties' => ['location' => 'query'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter#request
+            'GetAllPaymentsRequest' => [
+                'type' => 'object',
+                'location' => 'query',
+                'properties' => [
+                    'paymentId' => ['type' => 'string'],
+                    'paymentIntentId' => ['type' => 'string'],
+                    'terminalId' => ['type' => 'string'],
+                    'amountFrom' => ['type' => 'number'],
+                    'amountTo' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'orderId' => ['type' => 'string'],
+                    'note' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                    'executedAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'executedAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'recipientIban' => ['type' => 'string'],
+                    'referenceNumber' => ['type' => 'string'],
+                    'senderIban' => ['type' => 'string'],
+                    'senderName' => ['type' => 'string'],
+                    'providerType' => ['type' => 'string'],
+                    'mcc' => ['type' => 'string'],
+                    'type' => ['type' => 'string'],
+                    'count' => ['type' => 'integer', 'required' => true],
+                    'offset' => ['type' => 'integer', 'required' => true],
+                    'sortBy' => ['type' => 'string'],
+                    'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
+                ],
+                'additionalProperties' => ['location' => 'query'],
+            ],
+            // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox#request-parameters-body-json
+            'MiaTestPayRequest' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'qrId' => ['type' => 'string', 'required' => true],
+                    'amount' => ['type' => 'number', 'required' => true],
+                    'iban' => ['type' => 'string', 'required' => true],
+                    'currency' => ['type' => 'string', 'enum' => ['MDL'], 'required' => true],
+                    'payerName' => ['type' => 'string', 'required' => true],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            #endregion
+
+            #region Response Models
+            'OperationError' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'errorCode' => ['type' => 'string'],
+                    'errorMessage' => ['type' => 'string'],
+                    'errorArgs' => ['type' => 'object', 'additionalProperties' => ['type' => 'string']],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'GenerateTokenResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'accessToken' => ['type' => 'string'],
+                    'expiresIn' => ['type' => 'integer'],
+                    'tokenType' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfGenerateTokenResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'GenerateTokenResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'CreateCheckoutResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'checkoutId' => ['type' => 'string'],
+                    'checkoutUrl' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfCreateCheckoutResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'CreateCheckoutResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'CancelCheckoutResult' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'checkoutId' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfCancelCheckoutResult' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'CancelCheckoutResult'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'CheckoutModel' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'createdAt' => ['type' => 'string'],
+                    'merchantId' => ['type' => 'string'],
+                    'paymentIntentId' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                    'redirectUrl' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'order' => ['type' => 'object', 'additionalProperties' => true],
+                    'expiresAt' => ['type' => 'string'],
+                    'paymentMethods' => ['type' => 'array', 'items' => ['type' => 'object', 'additionalProperties' => true]],
+                    'paymentIntent' => ['type' => 'object', 'additionalProperties' => true],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfCheckoutModel' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'CheckoutModel'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'PagedListOfCheckoutModel' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'items' => ['type' => 'array', 'items' => ['$ref' => 'CheckoutModel']],
+                    'count' => ['type' => 'integer'],
+                    'totalCount' => ['type' => 'integer'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfPagedListOfCheckoutModel' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'PagedListOfCheckoutModel'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'GetPaymentResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'paymentId' => ['type' => 'string'],
+                    'paymentIntentId' => ['type' => 'string'],
+                    'executedAt' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'type' => ['type' => 'string'],
+                    'providerType' => ['type' => 'string'],
+                    'senderName' => ['type' => 'string'],
+                    'senderIban' => ['type' => 'string'],
+                    'recipientIban' => ['type' => 'string'],
+                    'referenceNumber' => ['type' => 'string'],
+                    'mcc' => ['type' => 'string'],
+                    'orderId' => ['type' => 'string'],
+                    'terminalId' => ['type' => 'string'],
+                    'refundedAmount' => ['type' => 'number'],
+                    'requestedRefundAmount' => ['type' => 'number'],
+                    'firstRefundedAt' => ['type' => 'string'],
+                    'lastRefundedAt' => ['type' => 'string'],
+                    'note' => ['type' => 'string'],
+                    'isRefundable' => ['type' => 'boolean'],
+                    'partialRefundAvailable' => ['type' => 'boolean'],
+                    'paymentEntryPoint' => ['type' => 'string'],
+                    'refundableAmount' => ['type' => 'number'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfGetPaymentResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'GetPaymentResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'GetAllPaymentsResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'items' => ['type' => 'array', 'items' => ['$ref' => 'GetPaymentResponse']],
+                    'totalCount' => ['type' => 'integer'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfGetAllPaymentsResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'GetAllPaymentsResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'CreateRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'refundId' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfCreateRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'CreateRefundResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+
+            'MiaTestPayResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'qrId' => ['type' => 'string'],
+                    'qrStatus' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'payId' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfMiaTestPayResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'MiaTestPayResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            #endregion
+        ];
+
         $description = [
-            //'baseUrl' => 'https://api.maibmerchants.md/',
             'name' => 'maib e-Commerce Checkout API',
             'apiVersion' => 'v2',
 
@@ -53,287 +457,147 @@ class MaibCheckoutDescription extends Description
                 ],
 
                 #region Authentication Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token
                 'getToken' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
                     'uri' => '/v2/auth/token',
                     'summary' => 'Obtain authentication token',
-                    'responseModel' => 'getResponse',
-                    'additionalParameters' => [
-                        'location' => 'json',
-                        'schema' => ['$ref' => 'AuthTokenDto']
-                    ]
+                    'responseModel' => 'OperationResultOfGenerateTokenResponse',
+                    'parameters' => self::getProperties($models, 'GenerateTokenRequest'),
+                    'additionalParameters' => ['location' => 'json'],
                 ],
                 #endregion
 
                 #region Checkout Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session
                 'checkoutRegister' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
-                    'uri' => '/v2/checkouts',
+                    'uri' => '/v2/checkouts/',
                     'summary' => 'Register a new hosted checkout session',
-                    'responseModel' => 'getResponse',
-                    'parameters' => [
+                    'responseModel' => 'OperationResultOfCreateCheckoutResponse',
+                    'parameters' => array_merge([
                         'authToken' => $authorizationHeader,
-                    ],
-                    'additionalParameters' => [
-                        'location' => 'json',
-                        'schema' => ['$ref' => 'CheckoutRegisterDto']
-                    ]
+                    ], self::getProperties($models, 'CreateCheckoutRequest')),
+                    'additionalParameters' => ['location' => 'json'],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/cancel-a-checkout-session
                 'checkoutCancel' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
-                    'uri' => '/v2/checkouts/{checkoutId}/cancel',
+                    'uri' => '/v2/checkouts/{id}/cancel',
                     'summary' => 'Cancel a checkout session',
-                    'responseModel' => 'getResponse',
+                    'responseModel' => 'OperationResultOfCancelCheckoutResult',
                     'parameters' => [
                         'authToken' => $authorizationHeader,
-                        'checkoutId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                        'id' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
+                    'additionalParameters' => ['location' => 'json'],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details
                 'checkoutDetails' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
-                    'uri' => '/v2/checkouts/{checkoutId}',
+                    'uri' => '/v2/checkouts/{id}',
                     'summary' => 'Get checkout details',
-                    'responseModel' => 'getResponse',
+                    'responseModel' => 'OperationResultOfCheckoutModel',
                     'parameters' => [
                         'authToken' => $authorizationHeader,
-                        'checkoutId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                        'id' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
+                    'additionalParameters' => ['location' => 'query'],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts
                 'checkoutList' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
-                    'uri' => '/v2/checkouts',
+                    'uri' => '/v2/checkouts/',
                     'summary' => 'Retrieve all checkouts',
-                    'responseModel' => 'getResponse',
-                    'parameters' => [
+                    'responseModel' => 'OperationResultOfPagedListOfCheckoutModel',
+                    'parameters' => array_merge([
                         'authToken' => $authorizationHeader,
-                    ],
-                    'additionalParameters' => [
-                        'location' => 'query',
-                        'schema' => ['$ref' => 'CheckoutListDto']
-                    ]
+                    ], self::getProperties($models, 'GetAllCheckoutsRequest', 'query')),
+                    'additionalParameters' => ['location' => 'query'],
                 ],
                 #endregion
 
                 #region Payment Operations
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-payment-by-id
                 'paymentDetails' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
-                    'uri' => '/v2/payments/{paymentId}',
+                    'uri' => '/v2/payments/{id}',
                     'summary' => 'Get payment by id',
-                    'responseModel' => 'getResponse',
+                    'responseModel' => 'OperationResultOfGetPaymentResponse',
                     'parameters' => [
                         'authToken' => $authorizationHeader,
-                        'paymentId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                        'id' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ],
+                    'additionalParameters' => ['location' => 'query'],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter
                 'paymentList' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'GET',
-                    'uri' => '/v2/payments',
+                    'uri' => '/v2/payments/',
                     'summary' => 'Retrieve all payments by filter',
-                    'responseModel' => 'getResponse',
-                    'parameters' => [
+                    'responseModel' => 'OperationResultOfGetAllPaymentsResponse',
+                    'parameters' => array_merge([
                         'authToken' => $authorizationHeader,
-                    ],
-                    'additionalParameters' => [
-                        'location' => 'query',
-                        'schema' => ['$ref' => 'PaymentListDto']
-                    ]
+                    ], self::getProperties($models, 'GetAllPaymentsRequest', 'query')),
+                    'additionalParameters' => ['location' => 'query'],
                 ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment
                 'paymentRefund' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
-                    'uri' => '/v2/payments/{paymentId}/refund',
+                    'uri' => '/v2/payments/{payId}/refund',
                     'summary' => 'Refund a payment',
-                    'responseModel' => 'getResponse',
-                    'parameters' => [
+                    'responseModel' => 'OperationResultOfCreateRefundResponse',
+                    'parameters' => array_merge([
                         'authToken' => $authorizationHeader,
-                        'paymentId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
-                    ],
-                    'additionalParameters' => [
-                        'location' => 'json',
-                        'schema' => ['$ref' => 'RefundDto']
-                    ]
+                        'payId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                    ], self::getProperties($models, 'CreateRefundRequest')),
+                    'additionalParameters' => ['location' => 'json'],
                 ],
                 #endregion
 
                 #region Payment Simulation Operations
+                // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
                 'miaTestPay' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
                     'uri' => '/v2/mia/test-pay',
                     'summary' => 'Payment Simulation (Sandbox)',
-                    'responseModel' => 'getResponse',
-                    'parameters' => [
+                    'responseModel' => 'OperationResultOfMiaTestPayResponse',
+                    'parameters' => array_merge([
                         'authToken' => $authorizationHeader,
-                    ],
-                    'additionalParameters' => [
-                        'location' => 'json',
-                        'schema' => ['$ref' => 'MiaTestPayDto']
-                    ]
+                    ], self::getProperties($models, 'MiaTestPayRequest')),
+                    'additionalParameters' => ['location' => 'json'],
                 ],
                 #endregion
             ],
 
-            'models' => [
-                'getResponse' => [
-                    'type' => 'object',
-                    'additionalProperties' => [
-                        'location' => 'json'
-                    ]
-                ],
-                'AuthTokenDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'clientId' => ['type' => 'string', 'required' => true],
-                        'clientSecret' => ['type' => 'string', 'required' => true],
-                    ],
-                ],
-                'CheckoutRegisterDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'amount' => ['type' => 'number', 'required' => true],
-                        'currency' => ['type' => 'string', 'required' => true],
-                        'orderInfo' => [
-                            'type' => 'object',
-                            '$ref' => 'OrderInfoDto',
-                            'required' => true
-                        ],
-                        'payerInfo' => [
-                            'type' => 'object',
-                            '$ref' => 'PayerInfoDto',
-                        ],
-                        'language' => ['type' => 'string'],
-                        'callbackUrl' => ['type' => 'string', 'required' => true],
-                        'successUrl' => ['type' => 'string'],
-                        'failUrl' => ['type' => 'string'],
-                    ],
-                ],
-                'OrderInfoDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'id' => ['type' => 'string', 'required' => true],
-                        'description' => ['type' => 'string', 'required' => true],
-                        'date' => ['type' => 'string', 'format' => 'date-time', 'required' => true],
-                        'orderAmount' => ['type' => 'number'],
-                        'orderCurrency' => ['type' => 'string'],
-                        'deliveryAmount' => ['type' => 'number'],
-                        'deliveryCurrency' => ['type' => 'string'],
-                        'items' => [
-                            'type' => 'array',
-                            'required' => true,
-                            'items' => [
-                                'type' => 'object',
-                                '$ref' => 'OrderInfoItemDto',
-                            ],
-                        ]
-                    ],
-                ],
-                'OrderInfoItemDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'externalId' => ['type' => 'string', 'required' => true],
-                        'title' => ['type' => 'string', 'required' => true],
-                        'amount' => ['type' => 'number', 'required' => true],
-                        'currency' => ['type' => 'string', 'required' => true],
-                        'quantity' => ['type' => 'number', 'required' => true],
-                        'displayOrder' => ['type' => 'integer'],
-                    ],
-                ],
-                'PayerInfoDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'name' => ['type' => 'string', 'required' => true],
-                        'email' => ['type' => 'string', 'required' => true],
-                        'phone' => ['type' => 'string', 'required' => true],
-                        'ip' => ['type' => 'string', 'required' => true],
-                        'userAgent' => ['type' => 'string', 'required' => true],
-                    ],
-                ],
-                'RefundDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'amount' => ['type' => 'number'],
-                        'reason' => ['type' => 'string', 'required' => true],
-                        'callbackUrl' => ['type' => 'string'],
-                    ],
-                ],
-                'CheckoutListDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'id' => ['type' => 'string'],
-                        'orderId' => ['type' => 'string'],
-                        'status' => ['type' => 'string', 'enum' => ['WaitingForInit', 'Initialized', 'PaymentMethodSelected', 'Completed', 'Expired', 'Abandoned', 'Cancelled', 'Failed']],
-                        'minAmount' => ['type' => 'number'],
-                        'maxAmount' => ['type' => 'number'],
-                        'currency' => ['type' => 'string'],
-                        'language' => ['type' => 'string'],
-                        'createdAtFrom' => ['type' => 'string', 'format' => 'date-time'],
-                        'createdAtTo' => ['type' => 'string', 'format' => 'date-time'],
-                        'expiresAtFrom' => ['type' => 'string', 'format' => 'date-time'],
-                        'expiresAtTo' => ['type' => 'string', 'format' => 'date-time'],
-
-                        'count' => ['type' => 'number'],
-                        'offset' => ['type' => 'number'],
-                        'sortBy' => ['type' => 'string', 'enum' => ['id', 'orderId', 'status', 'amount', 'currency', 'language', 'createdAt', 'expiresAt']],
-                        'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
-                    ],
-                ],
-                'PaymentListDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'paymentId' => ['type' => 'string'],
-                        'paymentIntentId' => ['type' => 'string'],
-                        'terminalId' => ['type' => 'string'],
-                        'amountFrom' => ['type' => 'number'],
-                        'amountTo' => ['type' => 'number'],
-                        'currency' => ['type' => 'string'],
-                        'orderId' => ['type' => 'string'],
-                        'note' => ['type' => 'string'],
-                        'status' => ['type' => 'string', 'enum' => ['Executed', 'PartiallyRefunded', 'Refunded', 'Failed']],
-                        'executedAtFrom' => ['type' => 'string', 'format' => 'date-time'],
-                        'executedAtTo' => ['type' => 'string', 'format' => 'date-time'],
-                        'recipientIban' => ['type' => 'string'],
-                        'referenceNumber' => ['type' => 'string'],
-                        'senderIban' => ['type' => 'string'],
-                        'senderName' => ['type' => 'string'],
-                        'providerType' => ['type' => 'string'], //TODO: providerType 'enum' => ['QR', 'MMC']
-                        'mcc' => ['type' => 'string'],
-                        'type' => ['type' => 'string'], //TODO: type 'enum' => ['MIA']
-
-                        'count' => ['type' => 'number'],
-                        'offset' => ['type' => 'number'],
-                        'sortBy' => ['type' => 'string', 'enum' => ['paymentId', 'paymentIntentId', 'terminalId', 'amount', 'currency', 'orderId', 'note', 'status', 'executedAt', 'recipientIban', 'referenceNumber', 'senderIban', 'senderName', 'providerType', 'mcc', 'type']],
-                        'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
-                    ],
-                ],
-                'MiaTestPayDto' => [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        'qrId' => ['type' => 'string', 'required' => true],
-                        'amount' => ['type' => 'number', 'required' => true],
-                        'iban' => ['type' => 'string', 'required' => true],
-                        'currency' => ['type' => 'string', 'enum' => ['MDL'], 'required' => true],
-                        'payerName' => ['type' => 'string', 'required' => true],
-                    ],
-                ],
-            ]
+            'models' => $models
         ];
 
         parent::__construct($description, $options);
+    }
+
+    /**
+     * Get property definitions from a model and inject a specific location.
+     */
+    private static function getProperties(array $models, string $modelName, string $location = 'json'): array
+    {
+        $props  = $models[$modelName]['properties'] ?? [];
+        $result = [];
+
+        foreach ($props as $name => $prop) {
+            $prop['location'] = $location;
+            $result[$name]    = $prop;
+        }
+
+        return $result;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Maib\MaibCheckout\Tests;
 
 use Maib\MaibCheckout\MaibCheckoutClient;
@@ -14,12 +16,15 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $clientId;
     protected static $clientSecret;
     protected static $signatureKey;
+    protected static $callbackUrl;
     protected static $baseUrl;
 
     // Shared state
     protected static $accessToken;
     protected static $checkoutId;
+    protected static $checkoutUrl;
     protected static $checkoutData;
+    protected static $qrId;
     protected static $paymentId;
 
     /**
@@ -29,12 +34,13 @@ class MaibCheckoutIntegrationTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$clientId = getenv('MAIB_CHECKOUT_CLIENT_ID');
+        self::$clientId     = getenv('MAIB_CHECKOUT_CLIENT_ID');
         self::$clientSecret = getenv('MAIB_CHECKOUT_CLIENT_SECRET');
         self::$signatureKey = getenv('MAIB_CHECKOUT_SIGNATURE_KEY');
-        self::$baseUrl = MaibCheckoutClient::SANDBOX_BASE_URL;
+        self::$callbackUrl  = getenv('MAIB_CHECKOUT_CALLBACK_URL') ?: 'https://example.com';
+        self::$baseUrl      = getenv('MAIB_CHECKOUT_BASE_URL') ?: MaibCheckoutClient::SANDBOX_BASE_URL;
 
-        if (!self::$clientId || !self::$clientSecret || !self::$signatureKey) {
+        if (empty(self::$clientId) || empty(self::$clientSecret) || empty(self::$signatureKey)) {
             self::markTestSkipped('Integration test credentials not provided.');
         }
     }
@@ -47,8 +53,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         ];
 
         #region Logging
-        $classParts = explode('\\', self::class);
-        $logName = end($classParts) . '_guzzle';
+        $classParts  = explode('\\', self::class);
+        $logName     = end($classParts) . '_guzzle';
         $logFileName = "$logName.log";
 
         $log = new \Monolog\Logger($logName);
@@ -68,8 +74,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         if ($this->isDebugMode()) {
             // https://github.com/guzzle/guzzle/issues/2185
             if ($t instanceof \GuzzleHttp\Command\Exception\CommandException) {
-                $response = $t->getResponse();
-                $responseBody = (string) $response->getBody();
+                $response         = $t->getResponse();
+                $responseBody     = !empty($response) ? strval($response->getBody()) : '';
                 $exceptionMessage = $t->getMessage();
 
                 $this->debugLog($responseBody, $exceptionMessage);
@@ -164,9 +170,9 @@ class MaibCheckoutIntegrationTest extends TestCase
                 'userAgent' => 'Mozilla/5.0',
             ],
             'language' => 'ro',
-            'callbackUrl' => 'https://example.com/path',
-            'successUrl' => 'https://example.com/path',
-            'failUrl' => 'https://example.com/path',
+            'callbackUrl' => self::$callbackUrl . '/callback',
+            'successUrl' => self::$callbackUrl . '/success',
+            'failUrl' => self::$callbackUrl . '/fail',
         ];
 
         $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
@@ -176,10 +182,35 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->assertNotEmpty($response['result']['checkoutId']);
         $this->assertNotEmpty($response['result']['checkoutUrl']);
 
-        $this->debugLog('checkoutUrl', $response['result']['checkoutUrl']);
-
-        self::$checkoutId = $response['result']['checkoutId'];
+        self::$checkoutId   = $response['result']['checkoutId'];
+        self::$checkoutUrl  = $response['result']['checkoutUrl'];
         self::$checkoutData = $checkoutData;
+
+        $this->debugLog('checkoutUrl', self::$checkoutUrl);
+        // exec('open ' . escapeshellarg(self::$checkoutUrl));
+    }
+
+    /**
+     * @depends testAuthenticate
+     */
+    public function testCheckoutRegisterValidationError()
+    {
+        $checkoutData = [
+            'amount' => 50.61,
+            'currencyABC' => 'MDL', // Invalid field
+            'callbackUrl' => self::$callbackUrl . '/callback',
+        ];
+
+        try {
+            $this->expectException(\GuzzleHttp\Command\Exception\CommandException::class);
+            $this->expectExceptionMessage('[currency] is a required string');
+
+            $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
+            $this->debugLog('checkoutRegister', $response);
+        } catch(\Exception $ex) {
+            $this->debugLog('checkoutRegister', $ex->getMessage());
+            throw $ex;
+        }
     }
 
     /**
@@ -220,7 +251,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            // 'sortBy' => 'createdAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
+            'sortBy' => 'CreatedAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
             'order' => 'desc'
         ];
 
@@ -236,13 +267,16 @@ class MaibCheckoutIntegrationTest extends TestCase
     #region Payment
     /**
      * @depends testCheckoutRegister
+     *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
      */
     public function testMiaTestPay()
     {
-        $this->markTestSkipped();
+        $this->markTestSkipped('miaTestPay cannot be automated yet - missing checkout session payment intent qrId'); //TODO
+        // fgets(STDIN);
 
         $testPayData = [
-            'qrId' => null, //TODO: qrId
+            'qrId' => self::$qrId,
             'amount' => self::$checkoutData['amount'],
             'currency' => self::$checkoutData['currency'],
             'iban' => 'MD88AG000000011621810140',
@@ -253,7 +287,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         // $this->debugLog('testPay', $response);
 
         $this->assertResultOk($response);
-        $this->assertEquals(null, $response['result']['qrId']); //TODO: qrId
+        $this->assertEquals(self::$qrId, $response['result']['qrId']);
         $this->assertEquals('Paid', $response['result']['qrStatus']);
         $this->assertEquals(self::$checkoutData['amount'], $response['result']['amount']);
         $this->assertEquals(self::$checkoutData['currency'], $response['result']['currency']);
@@ -306,7 +340,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         $refundData = [
             'amount' => self::$checkoutData['amount'] / 2,
             'reason' => 'testPaymentRefundPartial reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -324,7 +358,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     {
         $refundData = [
             'reason' => 'testPaymentRefundFull reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -344,7 +378,7 @@ class MaibCheckoutIntegrationTest extends TestCase
 
         $refundData = [
             'reason' => 'testRefundPaymentError reason',
-            'callbackUrl' => 'https://example.com/refund'
+            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -361,10 +395,10 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testValidateCallbackSignatureExample()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
-        $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureHeader = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
+        $callbackBody       = self::CALLBACK_EXAMPLE;
+        $signatureHeader    = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
         $signatureTimestamp = '1761032516817';
-        $signatureKey = '67be8e54-ac28-485d-9369-27f6d3c55a27';
+        $signatureKey       = '67be8e54-ac28-485d-9369-27f6d3c55a27';
 
         //NOTE: maib official example test is failing
         $this->assertFalse(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey));
@@ -373,10 +407,10 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testValidateCallbackSignature()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
-        $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureTimestamp = time();
+        $callbackBody       = self::CALLBACK_EXAMPLE;
+        $signatureTimestamp = strval(time());
 
-        $signature = MaibCheckoutClient::computeCallbackSignature($callbackBody, $signatureTimestamp, self::$signatureKey);
+        $signature       = MaibCheckoutClient::computeCallbackSignature($callbackBody, $signatureTimestamp, self::$signatureKey);
         $signatureHeader = "sha256=$signature";
 
         $this->assertTrue(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, self::$signatureKey));

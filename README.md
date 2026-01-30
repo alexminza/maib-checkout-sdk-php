@@ -123,6 +123,7 @@ $checkoutUrl = $checkoutRegisterResponse['result']['checkoutUrl'];
 ### Validate callback signature
 
 ```php
+// https://docs.maibmerchants.md/checkout/api-reference/callback-notifications#signature-example
 $callbackBody = '{"checkoutId":"5a4d27a4-79f5-426b-9403-cccdeee81747","paymentIntentId":"baa2a48d-b3ba-48b8-917e-07607d447c4f","merchantId":"37e48a96-37d7-49b3-8373-2e7e69ef8c2e","terminalId":"23456543","amount":193.54,"currency":"MDL","completedAt":"2024-11-23T19:35:00.6772285+02:00","payerName":"John","payerEmail":"Smith","payerPhone":"37368473653","payerIp":"192.175.12.22","orderId":"1142353","orderDescription":"OrderDescriptiondda760d7-a318-451b-8e47-f3377c06dcf5","orderDeliveryAmount":92.65,"orderDeliveryCurrency":8,"paymentId":"379b31a3-8283-43d4-8a7b-eef8c0736a32","paymentAmount":64.76,"paymentCurrency":"MDL","paymentStatus":"Executed","paymentExecutedAt":"2025-05-05T23:38:07.2760698+03:00","providerType":"Ips","senderIban":"NL43RABO1438227787","senderName":"Steven","senderCardNumber":"444433******1111","retrievalReferenceNumber":"ABC324353245"}';
 
 $signatureHeader = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
@@ -146,8 +147,8 @@ $callbackData = json_decode($callbackBody, true);
 $paymentId = $callbackData['paymentId'];
 
 $refundData = [
+    'amount' => 25.00,
     'reason' => 'Test refund reason',
-    // 'amount' => 25.00, // Optional: for partial refund
     // 'callbackUrl' => 'https://example.com/refund' // Optional
 ];
 

@@ -5,13 +5,17 @@ composer.phar
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
 # composer.lock
 
-.DS_Store
+**/.DS_Store
 *.log
 
 # dotenv environment variable files
 .env
 .env.*
 !.env.example
+
+# Tests
+/tests/*
+!/tests/*.php
 
 # PHPUnit
 /.phpunit.cache
