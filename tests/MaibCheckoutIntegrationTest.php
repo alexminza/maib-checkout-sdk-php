@@ -53,8 +53,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         ];
 
         #region Logging
-        $classParts = explode('\\', self::class);
-        $logName = end($classParts) . '_guzzle';
+        $classParts  = explode('\\', self::class);
+        $logName     = end($classParts) . '_guzzle';
         $logFileName = "$logName.log";
 
         $log = new \Monolog\Logger($logName);
@@ -74,8 +74,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         if ($this->isDebugMode()) {
             // https://github.com/guzzle/guzzle/issues/2185
             if ($t instanceof \GuzzleHttp\Command\Exception\CommandException) {
-                $response = $t->getResponse();
-                $responseBody = !empty($response) ? (string) $response->getBody() : '';
+                $response         = $t->getResponse();
+                $responseBody     = !empty($response) ? strval($response->getBody()) : '';
                 $exceptionMessage = $t->getMessage();
 
                 $this->debugLog($responseBody, $exceptionMessage);
@@ -182,8 +182,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->assertNotEmpty($response['result']['checkoutId']);
         $this->assertNotEmpty($response['result']['checkoutUrl']);
 
-        self::$checkoutId = $response['result']['checkoutId'];
-        self::$checkoutUrl = $response['result']['checkoutUrl'];
+        self::$checkoutId   = $response['result']['checkoutId'];
+        self::$checkoutUrl  = $response['result']['checkoutUrl'];
         self::$checkoutData = $checkoutData;
 
         $this->debugLog('checkoutUrl', self::$checkoutUrl);
@@ -395,10 +395,10 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testValidateCallbackSignatureExample()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
-        $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureHeader = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
+        $callbackBody       = self::CALLBACK_EXAMPLE;
+        $signatureHeader    = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
         $signatureTimestamp = '1761032516817';
-        $signatureKey = '67be8e54-ac28-485d-9369-27f6d3c55a27';
+        $signatureKey       = '67be8e54-ac28-485d-9369-27f6d3c55a27';
 
         //NOTE: maib official example test is failing
         $this->assertFalse(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey));
@@ -407,10 +407,10 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testValidateCallbackSignature()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
-        $callbackBody = self::CALLBACK_EXAMPLE;
-        $signatureTimestamp = (string) time();
+        $callbackBody       = self::CALLBACK_EXAMPLE;
+        $signatureTimestamp = strval(time());
 
-        $signature = MaibCheckoutClient::computeCallbackSignature($callbackBody, $signatureTimestamp, self::$signatureKey);
+        $signature       = MaibCheckoutClient::computeCallbackSignature($callbackBody, $signatureTimestamp, self::$signatureKey);
         $signatureHeader = "sha256=$signature";
 
         $this->assertTrue(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, self::$signatureKey));

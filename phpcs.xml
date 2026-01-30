@@ -5,12 +5,13 @@
 
     <!-- Rules -->
     <!-- Run against the PHPCompatibility ruleset -->
-    <!-- <rule ref="PHPCompatibility">
+    <rule ref="PHPCompatibility">
         <exclude-pattern>tests/</exclude-pattern>
-    </rule> -->
+    </rule>
 
     <!-- Customize -->
     <rule ref="Generic">
+        <exclude name="Generic.Files.LowercasedFilename.NotFound" />
         <exclude name="Generic.Files.LineLength.TooLong" />
         <exclude name="Generic.Files.LineLength.MaxExceeded" />
         <exclude name="Generic.Files.EndFileNoNewline.Found" />
@@ -24,15 +25,7 @@
         <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
     </rule>
 
-    <rule ref="Generic.Files.LowercasedFilename.NotFound">
-        <type>warning</type>
-    </rule>
-
     <rule ref="Generic.PHP.ClosingPHPTag.NotFound">
-        <type>warning</type>
-    </rule>
-
-    <rule ref="Generic.PHP.RequireStrictTypes.MissingDeclaration">
         <type>warning</type>
     </rule>
 

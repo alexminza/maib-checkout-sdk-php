@@ -9,7 +9,7 @@ use Composer\InstalledVersions;
 
 class MaibCheckoutDescription extends Description
 {
-    private const PACKAGE_NAME = 'alexminza/maib-checkout-sdk';
+    private const PACKAGE_NAME    = 'alexminza/maib-checkout-sdk';
     private const DEFAULT_VERSION = 'dev';
 
     private static function detectVersion(): string
@@ -28,7 +28,7 @@ class MaibCheckoutDescription extends Description
 
     public function __construct(array $options = [])
     {
-        $version = self::detectVersion();
+        $version   = self::detectVersion();
         $userAgent = "maib-checkout-sdk-php/$version";
 
         $authorizationHeader = [
@@ -590,12 +590,12 @@ class MaibCheckoutDescription extends Description
      */
     private static function getProperties(array $models, string $modelName, string $location = 'json'): array
     {
-        $props = $models[$modelName]['properties'] ?? [];
+        $props  = $models[$modelName]['properties'] ?? [];
         $result = [];
 
         foreach ($props as $name => $prop) {
             $prop['location'] = $location;
-            $result[$name] = $prop;
+            $result[$name]    = $prop;
         }
 
         return $result;

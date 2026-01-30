@@ -22,7 +22,7 @@ class MaibCheckoutClient extends GuzzleClient
 
     public function __construct(?ClientInterface $client = null, ?DescriptionInterface $description = null, array $config = [])
     {
-        $client = $client ?? new Client();
+        $client      = $client ?? new Client();
         $description = $description ?? new MaibCheckoutDescription($config);
 
         parent::__construct($client, $description, null, null, null, $config);
@@ -137,7 +137,7 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function paymentRefund(string $paymentId, array $refundData, string $authToken): Result
     {
-        $args = $refundData;
+        $args          = $refundData;
         $args['payId'] = $paymentId;
 
         self::setBearerAuthToken($args, $authToken);
@@ -178,7 +178,7 @@ class MaibCheckoutClient extends GuzzleClient
     public static function validateCallbackSignature(string $callbackBody, string $signatureHeader, string $signatureTimestamp, string $signatureKey): bool
     {
         // Extract signature
-        $prefix = 'sha256=';
+        $prefix            = 'sha256=';
         $callbackSignature = strpos($signatureHeader, $prefix) === 0
             ? substr($signatureHeader, strlen($prefix))
             : '';
