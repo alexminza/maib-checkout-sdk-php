@@ -54,9 +54,8 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function checkoutRegister(array $checkoutData, string $authToken): Result
     {
-        $args = $checkoutData;
-        self::setBearerAuthToken($args, $authToken);
-        return parent::checkoutRegister($args);
+        self::setBearerAuthToken($checkoutData, $authToken);
+        return parent::checkoutRegister($checkoutData);
     }
 
     /**
@@ -96,9 +95,8 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function checkoutList(array $checkoutListData, string $authToken): Result
     {
-        $args = $checkoutListData;
-        self::setBearerAuthToken($args, $authToken);
-        return parent::checkoutList($args);
+        self::setBearerAuthToken($checkoutListData, $authToken);
+        return parent::checkoutList($checkoutListData);
     }
     #endregion
 
@@ -125,9 +123,8 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function paymentList(array $paymentListData, string $authToken): Result
     {
-        $args = $paymentListData;
-        self::setBearerAuthToken($args, $authToken);
-        return parent::paymentList($args);
+        self::setBearerAuthToken($paymentListData, $authToken);
+        return parent::paymentList($paymentListData);
     }
 
     /**
@@ -137,11 +134,10 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function paymentRefund(string $paymentId, array $refundData, string $authToken): Result
     {
-        $args          = $refundData;
-        $args['payId'] = $paymentId;
+        $refundData['payId'] = $paymentId;
 
-        self::setBearerAuthToken($args, $authToken);
-        return parent::paymentRefund($args);
+        self::setBearerAuthToken($refundData, $authToken);
+        return parent::paymentRefund($refundData);
     }
     #endregion
 
@@ -154,10 +150,8 @@ class MaibCheckoutClient extends GuzzleClient
      */
     public function miaTestPay(array $testPayData, string $authToken): Result
     {
-        $args = $testPayData;
-
-        self::setBearerAuthToken($args, $authToken);
-        return parent::miaTestPay($args);
+        self::setBearerAuthToken($testPayData, $authToken);
+        return parent::miaTestPay($testPayData);
     }
     #endregion
 

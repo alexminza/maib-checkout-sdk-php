@@ -7,6 +7,11 @@ namespace Maib\MaibCheckout;
 use GuzzleHttp\Command\Guzzle\Description;
 use Composer\InstalledVersions;
 
+/**
+ * maib e-Commerce Checkout API service description
+ *
+ * @link https://docs.maibmerchants.md/checkout
+ */
 class MaibCheckoutDescription extends Description
 {
     private const PACKAGE_NAME    = 'alexminza/maib-checkout-sdk';
