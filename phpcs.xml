@@ -11,6 +11,8 @@
 
     <!-- Customize -->
     <rule ref="Generic">
+        <exclude name="Generic.PHP.ClosingPHPTag.NotFound" />
+        <exclude name="Generic.PHP.UpperCaseConstant.Found" />
         <exclude name="Generic.Files.LowercasedFilename.NotFound" />
         <exclude name="Generic.Files.LineLength.TooLong" />
         <exclude name="Generic.Files.LineLength.MaxExceeded" />
@@ -22,7 +24,7 @@
         <exclude name="Generic.Classes.OpeningBraceSameLine.BraceOnNewLine" />
         <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine" />
         <exclude name="Generic.Commenting.DocComment.MissingShort" />
-        <exclude name="Generic.PHP.UpperCaseConstant.Found" />
+        <exclude name="Generic.Commenting.DocComment.ShortNotCapital" />
         <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
     </rule>
 
@@ -31,10 +33,6 @@
     </rule>
 
     <rule ref="Generic.NamingConventions.CamelCapsFunctionName.ScopeNotCamelCaps">
-        <type>warning</type>
-    </rule>
-
-    <rule ref="Generic.Commenting.DocComment.ShortNotCapital">
         <type>warning</type>
     </rule>
 </ruleset>
