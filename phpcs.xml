@@ -17,6 +17,7 @@
         <exclude name="Generic.Files.EndFileNoNewline.Found" />
         <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSame" />
         <exclude name="Generic.Formatting.SpaceAfterNot.Incorrect" />
+        <exclude name="Generic.Formatting.NoSpaceAfterCast.SpaceFound" />
         <exclude name="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed" />
         <exclude name="Generic.Classes.OpeningBraceSameLine.BraceOnNewLine" />
         <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine" />
