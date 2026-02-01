@@ -28,10 +28,6 @@
         <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
     </rule>
 
-    <rule ref="Generic.PHP.ClosingPHPTag.NotFound">
-        <type>warning</type>
-    </rule>
-
     <rule ref="Generic.NamingConventions.CamelCapsFunctionName.ScopeNotCamelCaps">
         <type>warning</type>
     </rule>
