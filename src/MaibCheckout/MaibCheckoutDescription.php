@@ -212,19 +212,6 @@ class MaibCheckoutDescription extends Description
                 ],
                 'additionalProperties' => ['location' => 'query'],
             ],
-            // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox#request-parameters-body-json
-            'MiaTestPayRequest' => [
-                'type' => 'object',
-                'location' => 'json',
-                'properties' => [
-                    'qrId' => ['type' => 'string', 'required' => true],
-                    'amount' => ['type' => 'number', 'required' => true],
-                    'iban' => ['type' => 'string', 'required' => true],
-                    'currency' => ['type' => 'string', 'enum' => ['MDL'], 'required' => true],
-                    'payerName' => ['type' => 'string', 'required' => true],
-                ],
-                'additionalProperties' => ['location' => 'json'],
-            ],
             #endregion
 
             #region Response Models
@@ -505,29 +492,6 @@ class MaibCheckoutDescription extends Description
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
-
-            'MiaTestPayResponse' => [
-                'type' => 'object',
-                'location' => 'json',
-                'properties' => [
-                    'qrId' => ['type' => 'string'],
-                    'qrStatus' => ['type' => 'string'],
-                    'amount' => ['type' => 'number'],
-                    'currency' => ['type' => 'string'],
-                    'payId' => ['type' => 'string'],
-                ],
-                'additionalProperties' => ['location' => 'json'],
-            ],
-            'OperationResultOfMiaTestPayResponse' => [
-                'type' => 'object',
-                'location' => 'json',
-                'properties' => [
-                    'ok' => ['type' => 'boolean'],
-                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
-                    'result' => ['$ref' => 'MiaTestPayResponse'],
-                ],
-                'additionalProperties' => ['location' => 'json'],
-            ],
             #endregion
         ];
 
@@ -648,21 +612,6 @@ class MaibCheckoutDescription extends Description
                         'authToken' => $authorizationHeader,
                         'payId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ], self::getProperties($models, 'CreateRefundRequest')),
-                    'additionalParameters' => ['location' => 'json'],
-                ],
-                #endregion
-
-                #region Payment Simulation Operations
-                // https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
-                'miaTestPay' => [
-                    'extends' => 'baseOp',
-                    'httpMethod' => 'POST',
-                    'uri' => '/v2/mia/test-pay',
-                    'summary' => 'Payment Simulation (Sandbox)',
-                    'responseModel' => 'OperationResultOfMiaTestPayResponse',
-                    'parameters' => array_merge([
-                        'authToken' => $authorizationHeader,
-                    ], self::getProperties($models, 'MiaTestPayRequest')),
                     'additionalParameters' => ['location' => 'json'],
                 ],
                 #endregion
