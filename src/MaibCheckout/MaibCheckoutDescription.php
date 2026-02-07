@@ -11,6 +11,7 @@ use Composer\InstalledVersions;
  * maib e-Commerce Checkout API service description
  *
  * @link https://docs.maibmerchants.md/checkout
+ * @link https://docs.maibmerchants.md/checkout/api-reference/examples/api-tools-and-resources
  */
 class MaibCheckoutDescription extends Description
 {
@@ -75,7 +76,7 @@ class MaibCheckoutDescription extends Description
                     'currency' => ['type' => 'string', 'required' => true],
                     'orderInfo' => [
                         'type' => 'object',
-                        '$ref' => 'OrderInfo',
+                        '$ref' => 'OrderDto',
                     ],
                     'payerInfo' => [
                         'type' => 'object',
@@ -89,7 +90,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
             // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#orderinfo-object
-            'OrderInfo' => [
+            'OrderDto' => [
                 'type' => 'object',
                 'location' => 'json',
                 'properties' => [
@@ -160,10 +161,20 @@ class MaibCheckoutDescription extends Description
                     'maxAmount' => ['type' => 'number'],
                     'currency' => ['type' => 'string'],
                     'language' => ['type' => 'string'],
+                    'payerName' => ['type' => 'string'],
+                    'payerEmail' => ['type' => 'string'],
+                    'payerPhone' => ['type' => 'string'],
+                    'payerIp' => ['type' => 'string'],
                     'createdAtFrom' => ['type' => 'string', 'format' => 'date-time'],
                     'createdAtTo' => ['type' => 'string', 'format' => 'date-time'],
                     'expiresAtFrom' => ['type' => 'string', 'format' => 'date-time'],
                     'expiresAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'cancelledAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'cancelledAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'failedAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'failedAtTo' => ['type' => 'string', 'format' => 'date-time'],
+                    'completedAtFrom' => ['type' => 'string', 'format' => 'date-time'],
+                    'completedAtTo' => ['type' => 'string', 'format' => 'date-time'],
                     'count' => ['type' => 'integer'],
                     'offset' => ['type' => 'integer'],
                     'sortBy' => ['type' => 'string'],
@@ -217,6 +228,7 @@ class MaibCheckoutDescription extends Description
             #endregion
 
             #region Response Models
+            // https://docs.maibmerchants.md/checkout/api-reference/errors/api-errors#error-format
             'OperationError' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -228,6 +240,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/authentication/obtain-authentication-token#response-parameters
             'GenerateTokenResponse' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -249,6 +262,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#response
             'CreateCheckoutResponse' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -269,6 +283,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/cancel-a-checkout-session#response
             'CancelCheckoutResult' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -289,22 +304,85 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details#response
             'CheckoutModel' => [
                 'type' => 'object',
                 'location' => 'json',
                 'properties' => [
                     'id' => ['type' => 'string'],
                     'createdAt' => ['type' => 'string'],
-                    'merchantId' => ['type' => 'string'],
-                    'paymentIntentId' => ['type' => 'string'],
                     'status' => ['type' => 'string'],
-                    'redirectUrl' => ['type' => 'string'],
                     'amount' => ['type' => 'number'],
                     'currency' => ['type' => 'string'],
-                    'order' => ['type' => 'object', 'additionalProperties' => true],
+                    'language' => ['type' => 'string'],
+                    'url' => ['type' => 'string'],
+                    'order' => [
+                        'type' => 'object',
+                        '$ref' => 'OrderInfo',
+                    ],
+                    'payer' => [
+                        'type' => 'object',
+                        '$ref' => 'PayerDto',
+                    ],
+                    'completedAt' => ['type' => 'string'],
+                    'failedAt' => ['type' => 'string'],
+                    'cancelledAt' => ['type' => 'string'],
                     'expiresAt' => ['type' => 'string'],
-                    'paymentMethods' => ['type' => 'array', 'items' => ['type' => 'object', 'additionalProperties' => true]],
-                    'paymentIntent' => ['type' => 'object', 'additionalProperties' => true],
+                    'payment' => [
+                        'type' => 'object',
+                        '$ref' => 'PaymentResponseDto',
+                    ],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details#result.order-object
+            'OrderInfo' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'description' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'deliveryAmount' => ['type' => 'number'],
+                    'deliveryCurrency' => ['type' => 'string'],
+                    'date' => ['type' => 'string', 'format' => 'date-time'],
+                    'orderItems' => [
+                        'type' => 'array',
+                        'items' => [
+                            'type' => 'object',
+                            '$ref' => 'OrderItemDto',
+                        ],
+                    ]
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-checkout-details#result.payment-object
+            'PaymentResponseDto' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'paymentId' => ['type' => 'string'],
+                    'executedAt' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'type' => ['type' => 'string'],
+                    'providerType' => ['type' => 'string'],
+                    'senderName' => ['type' => 'string'],
+                    'senderIban' => ['type' => 'string'],
+                    'recipientIban' => ['type' => 'string'],
+                    'referenceNumber' => ['type' => 'string'],
+                    'mcc' => ['type' => 'string'],
+                    'orderId' => ['type' => 'string'],
+                    'terminalId' => ['type' => 'string'],
+                    'refundedAmount' => ['type' => 'number'],
+                    'paymentMethod' => ['type' => 'string'],
+                    'approvalCode' => ['type' => 'string'],
+                    'requestedRefundAmount' => ['type' => 'number'],
+                    'firstRefundedAt' => ['type' => 'string'],
+                    'lastRefundedAt' => ['type' => 'string'],
+                    'note' => ['type' => 'string'],
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
@@ -319,6 +397,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-checkouts#response
             'PagedListOfCheckoutModel' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -340,6 +419,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/get-payment-by-id#response
             'GetPaymentResponse' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -360,6 +440,8 @@ class MaibCheckoutDescription extends Description
                     'orderId' => ['type' => 'string'],
                     'terminalId' => ['type' => 'string'],
                     'refundedAmount' => ['type' => 'number'],
+                    'paymentMethod' => ['type' => 'string'],
+                    'approvalCode' => ['type' => 'string'],
                     'requestedRefundAmount' => ['type' => 'number'],
                     'firstRefundedAt' => ['type' => 'string'],
                     'lastRefundedAt' => ['type' => 'string'],
@@ -382,6 +464,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-all-payments-by-filter#response
             'GetAllPaymentsResponse' => [
                 'type' => 'object',
                 'location' => 'json',
@@ -402,6 +485,7 @@ class MaibCheckoutDescription extends Description
                 'additionalProperties' => ['location' => 'json'],
             ],
 
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/refund-a-payment#response
             'CreateRefundResponse' => [
                 'type' => 'object',
                 'location' => 'json',
