@@ -130,22 +130,24 @@ class MaibCheckoutIntegrationTest extends TestCase
     #region Checkout
     /**
      * @depends testAuthenticate
+     *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#request
      */
     public function testCheckoutRegister()
     {
         self::$orderId = 'TEST' . time(); // Unique order ID for each test run
 
         self::$checkoutData = [
-            'amount' => 50.61,
+            'amount' => 263.05, // (50.61 * 3) + (50.61 * 2) + 10
             'currency' => 'MDL',
             'orderInfo' => [
                 'id' => self::$orderId,
                 'description' => 'Order description',
-                'date' => '2025-11-03T09:28:40.814748+00:00',
-                'orderAmount' => null,
-                'orderCurrency' => null,
-                'deliveryAmount' => null,
-                'deliveryCurrency' => null,
+                'date' => date('c'),
+                'orderAmount' => 253.05,
+                'orderCurrency' => 'MDL',
+                'deliveryAmount' => 10,
+                'deliveryCurrency' => 'MDL',
                 'items' => [
                     [
                         'externalId' => '243345345',
@@ -153,7 +155,7 @@ class MaibCheckoutIntegrationTest extends TestCase
                         'amount' => 50.61,
                         'currency' => 'MDL',
                         'quantity' => 3,
-                        'displayOrder' => null,
+                        'displayOrder' => 1,
                     ],
                     [
                         'externalId' => '54353453',
@@ -161,7 +163,7 @@ class MaibCheckoutIntegrationTest extends TestCase
                         'amount' => 50.61,
                         'currency' => 'MDL',
                         'quantity' => 2,
-                        'displayOrder' => null,
+                        'displayOrder' => 2,
                     ],
                 ],
             ],
@@ -271,6 +273,8 @@ class MaibCheckoutIntegrationTest extends TestCase
      * @depends testCheckoutRegister
      *
      * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
+     * @link https://docs.maibmerchants.md/mia-qr-api/en/endpoints/information-retrieval-get/display-list-of-qr-codes-with-filtering-options
+     * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
      */
     public function testMiaTestPay()
     {
