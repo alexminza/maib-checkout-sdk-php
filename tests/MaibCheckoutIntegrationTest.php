@@ -24,6 +24,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $checkoutId;
     protected static $checkoutUrl;
     protected static $checkoutData;
+    protected static $orderId;
     protected static $qrId;
     protected static $paymentId;
 
@@ -132,11 +133,13 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testCheckoutRegister()
     {
-        $checkoutData = [
+        self::$orderId = 'TEST' . time(); // Unique order ID for each test run
+
+        self::$checkoutData = [
             'amount' => 50.61,
             'currency' => 'MDL',
             'orderInfo' => [
-                'id' => 'EK123123BV',
+                'id' => self::$orderId,
                 'description' => 'Order description',
                 'date' => '2025-11-03T09:28:40.814748+00:00',
                 'orderAmount' => null,
@@ -175,7 +178,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             'failUrl' => self::$callbackUrl . '/fail',
         ];
 
-        $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
+        $response = $this->client->checkoutRegister(self::$checkoutData, self::$accessToken);
         // $this->debugLog('checkoutRegister', $response);
 
         $this->assertResultOk($response);
@@ -184,7 +187,6 @@ class MaibCheckoutIntegrationTest extends TestCase
 
         self::$checkoutId   = $response['result']['checkoutId'];
         self::$checkoutUrl  = $response['result']['checkoutUrl'];
-        self::$checkoutData = $checkoutData;
 
         $this->debugLog('checkoutUrl', self::$checkoutUrl);
         // exec('open ' . escapeshellarg(self::$checkoutUrl));
@@ -272,28 +274,74 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testMiaTestPay()
     {
-        $this->markTestSkipped('miaTestPay cannot be automated yet - missing checkout session payment intent qrId'); //TODO
-        // fgets(STDIN);
+        //region 1. Wait for user input to open checkout and select MIA
+        error_log("[MANUAL ACTION REQUIRED]");
+        error_log("1. Open this URL in your browser: " . self::$checkoutUrl);
+        error_log("2. Select 'MIA' as the payment method.");
+        error_log("3. Once the QR code is displayed, return here and press ENTER to continue...");
 
-        $testPayData = [
-            'qrId' => self::$qrId,
-            'amount' => self::$checkoutData['amount'],
-            'currency' => self::$checkoutData['currency'],
-            'iban' => 'MD88AG000000011621810140',
-            'payerName' => 'TEST QR PAYMENT'
+        if (function_exists('xdebug_break')) {
+            \xdebug_break();
+        } elseif (PHP_SAPI === 'cli') {
+            fgets(STDIN);
+        }
+        //endregion
+
+        //region 2. Retrieve the list of current active QR codes for the test order ID
+        $httpClient = $this->client->getHttpClient();
+        $headers = [
+            'Authorization' => 'Bearer ' . self::$accessToken,
+            'Accept'        => 'application/json',
         ];
 
-        $response = $this->client->miaTestPay($testPayData, self::$accessToken);
-        // $this->debugLog('testPay', $response);
+        $qrListResponse = $httpClient->request('GET', '/v2/mia/qr', [
+            'headers' => $headers,
+            'query' => [
+                'orderId' => self::$orderId,
+                'count'   => 10,
+                'offset'  => 0,
+                'sortBy'  => 'createdAt',
+                'order'   => 'desc',
+            ]
+        ]);
 
-        $this->assertResultOk($response);
-        $this->assertEquals(self::$qrId, $response['result']['qrId']);
-        $this->assertEquals('Paid', $response['result']['qrStatus']);
-        $this->assertEquals(self::$checkoutData['amount'], $response['result']['amount']);
-        $this->assertEquals(self::$checkoutData['currency'], $response['result']['currency']);
-        $this->assertNotEmpty($response['result']['payId']);
+        $qrListData = json_decode((string)$qrListResponse->getBody(), true);
+        $this->assertTrue($qrListData['ok'], 'Failed to retrieve QR list: ' . json_encode($qrListData));
+        $this->assertNotEmpty($qrListData['result']['items'], 'No QR codes found for order ' . self::$orderId);
+        //endregion
 
-        self::$paymentId = $response['result']['paymentId'];
+        //region 3. Extract the qrId for the latest QR in the retrieved list
+        self::$qrId = $qrListData['result']['items'][0]['qrId'];
+        $this->debugLog('Extracted qrId', self::$qrId);
+        //endregion
+
+        //region 4. Perform a payment simulation request
+        $testPayData = [
+            'qrId'      => self::$qrId,
+            'amount'    => self::$checkoutData['amount'],
+            'currency'  => self::$checkoutData['currency'],
+            'iban'      => 'MD88AG000000011621810140',
+            'payerName' => 'TEST MIA PAYMENT'
+        ];
+
+        $testPayResponse = $httpClient->request('POST', '/v2/mia/test-pay', [
+            'headers' => $headers,
+            'json'    => $testPayData
+        ]);
+
+        $testPayResult = json_decode((string)$testPayResponse->getBody(), true);
+        $this->assertTrue($testPayResult['ok'], 'MIA test pay failed: ' . json_encode($testPayResult));
+        $this->assertEquals('Paid', $testPayResult['result']['qrStatus']);
+
+        self::$paymentId = $testPayResult['result']['payId'];
+        //endregion
+
+        //region 5. Test that the initial checkout session was successfully paid
+        $checkoutDetails = $this->client->checkoutDetails(self::$checkoutId, self::$accessToken);
+        $this->assertResultOk($checkoutDetails);
+        $this->assertEquals('Completed', $checkoutDetails['result']['status']);
+        $this->assertEquals(self::$paymentId, $checkoutDetails['result']['payment']['paymentId']);
+        //endregion
     }
 
     /**
