@@ -285,7 +285,7 @@ class MaibCheckoutIntegrationTest extends TestCase
         error_log("3. Once the QR code is displayed, return here and press ENTER to continue...");
 
         if (function_exists('xdebug_break')) {
-            \xdebug_break();
+            call_user_func('xdebug_break');
         } elseif (PHP_SAPI === 'cli') {
             fgets(STDIN);
         } else {
