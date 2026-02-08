@@ -312,14 +312,17 @@ class MaibCheckoutIntegrationTest extends TestCase
             ]
         ]);
 
-        $qrListData = json_decode(strval($qrListResponse->getBody()), true);
-        $this->assertTrue($qrListData['ok'], 'Failed to retrieve QR list: ' . json_encode($qrListData));
-        $this->assertNotEmpty($qrListData['result']['items'], 'No QR codes found for order ' . self::$orderId);
+        $qrListResponseBody = strval($qrListResponse->getBody());
+        $this->debugLog('qrList', $qrListResponseBody);
+
+        $qrListData = json_decode($qrListResponseBody, true);
+        $this->assertResultOk($qrListData);
+        $this->assertNotEmpty($qrListData['result']['items']);
         //endregion
 
         //region 3. Extract the qrId for the latest QR in the retrieved list
         self::$qrId = $qrListData['result']['items'][0]['qrId'];
-        $this->debugLog('Extracted qrId', self::$qrId);
+        $this->debugLog('qrList qrId', self::$qrId);
         //endregion
 
         //region 4. Perform a payment simulation request
@@ -336,8 +339,11 @@ class MaibCheckoutIntegrationTest extends TestCase
             'json'    => $testPayData
         ]);
 
-        $testPayResult = json_decode(strval($testPayResponse->getBody()), true);
-        $this->assertTrue($testPayResult['ok'], 'MIA test pay failed: ' . json_encode($testPayResult));
+        $testPayResponseBody = strval($testPayResponse->getBody());
+        $this->debugLog('miaTestPay', $testPayResponseBody);
+
+        $testPayResult = json_decode($testPayResponseBody, true);
+        $this->assertResultOk($testPayResult);
         $this->assertEquals('Paid', $testPayResult['result']['qrStatus']);
 
         self::$paymentId = $testPayResult['result']['payId'];
