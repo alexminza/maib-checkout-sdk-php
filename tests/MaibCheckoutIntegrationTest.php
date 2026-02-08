@@ -187,8 +187,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->assertNotEmpty($response['result']['checkoutId']);
         $this->assertNotEmpty($response['result']['checkoutUrl']);
 
-        self::$checkoutId   = $response['result']['checkoutId'];
-        self::$checkoutUrl  = $response['result']['checkoutUrl'];
+        self::$checkoutId  = $response['result']['checkoutId'];
+        self::$checkoutUrl = $response['result']['checkoutUrl'];
 
         $this->debugLog('checkoutUrl', self::$checkoutUrl);
         // exec('open ' . escapeshellarg(self::$checkoutUrl));
@@ -211,7 +211,7 @@ class MaibCheckoutIntegrationTest extends TestCase
 
             $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
             $this->debugLog('checkoutRegister', $response);
-        } catch(\Exception $ex) {
+        } catch (\Exception $ex) {
             $this->debugLog('checkoutRegister', $ex->getMessage());
             throw $ex;
         }
@@ -288,11 +288,14 @@ class MaibCheckoutIntegrationTest extends TestCase
             \xdebug_break();
         } elseif (PHP_SAPI === 'cli') {
             fgets(STDIN);
+        } else {
+            $this->markTestSkipped('Manual testMiaTestPay requires CLI or xdebug to pause for user interaction.');
         }
         //endregion
 
         //region 2. Retrieve the list of current active QR codes for the test order ID
         $httpClient = $this->client->getHttpClient();
+
         $headers = [
             'Authorization' => 'Bearer ' . self::$accessToken,
             'Accept'        => 'application/json',
@@ -309,7 +312,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             ]
         ]);
 
-        $qrListData = json_decode((string)$qrListResponse->getBody(), true);
+        $qrListData = json_decode(strval($qrListResponse->getBody()), true);
         $this->assertTrue($qrListData['ok'], 'Failed to retrieve QR list: ' . json_encode($qrListData));
         $this->assertNotEmpty($qrListData['result']['items'], 'No QR codes found for order ' . self::$orderId);
         //endregion
@@ -333,7 +336,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             'json'    => $testPayData
         ]);
 
-        $testPayResult = json_decode((string)$testPayResponse->getBody(), true);
+        $testPayResult = json_decode(strval($testPayResponse->getBody()), true);
         $this->assertTrue($testPayResult['ok'], 'MIA test pay failed: ' . json_encode($testPayResult));
         $this->assertEquals('Paid', $testPayResult['result']['qrStatus']);
 
