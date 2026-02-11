@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maib\MaibCheckout\Tests;
 
 use Maib\MaibCheckout\MaibCheckoutClient;
+use Maib\MaibMia\MaibMiaClient;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 
@@ -32,6 +33,11 @@ class MaibCheckoutIntegrationTest extends TestCase
      * @var MaibCheckoutClient
      */
     protected $client;
+
+    /**
+     * @var MaibMiaClient
+     */
+    protected $miaClient;
 
     public static function setUpBeforeClass(): void
     {
@@ -67,7 +73,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         $options['handler'] = $stack;
         #endregion
 
-        $this->client = new MaibCheckoutClient(new Client($options));
+        $this->client    = new MaibCheckoutClient(new Client($options));
+        $this->miaClient = new MaibMiaClient(new Client($options));
     }
 
     protected function onNotSuccessfulTest(\Throwable $t): void
@@ -233,7 +240,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     }
 
     /**
-     * @depends testCheckoutRegister
+     * @depends testMiaTestPay
      */
     public function testCheckoutCancel()
     {
@@ -294,34 +301,24 @@ class MaibCheckoutIntegrationTest extends TestCase
         //endregion
 
         //region 2. Retrieve the list of current active QR codes for the test order ID
-        $httpClient = $this->client->getHttpClient();
-
-        $headers = [
-            'Authorization' => 'Bearer ' . self::$accessToken,
-            'Accept'        => 'application/json',
+        $qrListData = [
+            'orderId' => self::$orderId,
+            'count'   => 10,
+            'offset'  => 0,
+            'sortBy'  => 'createdAt',
+            'order'   => 'desc',
         ];
 
-        $qrListResponse = $httpClient->request('GET', '/v2/mia/qr', [
-            'headers' => $headers,
-            'query' => [
-                'orderId' => self::$orderId,
-                'count'   => 10,
-                'offset'  => 0,
-                'sortBy'  => 'createdAt',
-                'order'   => 'desc',
-            ]
-        ]);
+        $qrListResponse = $this->miaClient->qrList($qrListData, self::$accessToken);
+        // $this->debugLog('qrList', $qrListResponse);
 
-        $qrListResponseBody = strval($qrListResponse->getBody());
-        $this->debugLog('qrList', $qrListResponseBody);
-
-        $qrListData = json_decode($qrListResponseBody, true);
-        $this->assertResultOk($qrListData);
-        $this->assertNotEmpty($qrListData['result']['items']);
+        $this->assertResultOk($qrListResponse);
+        $this->assertEquals(1, $qrListResponse['result']['totalCount']);
+        $this->assertNotEmpty($qrListResponse['result']['items']);
         //endregion
 
         //region 3. Extract the qrId for the latest QR in the retrieved list
-        self::$qrId = $qrListData['result']['items'][0]['qrId'];
+        self::$qrId = $qrListResponse['result']['items'][0]['qrId'];
         $this->debugLog('qrList qrId', self::$qrId);
         //endregion
 
@@ -334,19 +331,13 @@ class MaibCheckoutIntegrationTest extends TestCase
             'payerName' => 'TEST MIA PAYMENT'
         ];
 
-        $testPayResponse = $httpClient->request('POST', '/v2/mia/test-pay', [
-            'headers' => $headers,
-            'json'    => $testPayData
-        ]);
+        $testPayResponse = $this->miaClient->testPay($testPayData, self::$accessToken);
+        // $this->debugLog('miaTestPay', $testPayResponse);
 
-        $testPayResponseBody = strval($testPayResponse->getBody());
-        $this->debugLog('miaTestPay', $testPayResponseBody);
+        $this->assertResultOk($testPayResponse);
+        $this->assertEquals('Paid', $testPayResponse['result']['qrStatus']);
 
-        $testPayResult = json_decode($testPayResponseBody, true);
-        $this->assertResultOk($testPayResult);
-        $this->assertEquals('Paid', $testPayResult['result']['qrStatus']);
-
-        self::$paymentId = $testPayResult['result']['payId'];
+        self::$paymentId = $testPayResponse['result']['payId'];
         //endregion
 
         //region 5. Test that the initial checkout session was successfully paid
