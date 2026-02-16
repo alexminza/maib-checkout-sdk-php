@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b4ce4b4960d771963266d89f7224eae4",
+    "content-hash": "b16ece63a7289198e270fcffb646dada",
     "packages": [
         {
             "name": "guzzlehttp/command",
@@ -944,6 +944,71 @@
         }
     ],
     "packages-dev": [
+        {
+            "name": "alexminza/maib-mia-sdk",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/alexminza/maib-mia-sdk-php.git",
+                "reference": "500506d0def7ae9cfc6150b2ed52f9e61a05a5e6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/alexminza/maib-mia-sdk-php/zipball/500506d0def7ae9cfc6150b2ed52f9e61a05a5e6",
+                "reference": "500506d0def7ae9cfc6150b2ed52f9e61a05a5e6",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0",
+                "guzzlehttp/guzzle-services": "^1.0",
+                "php": ">=7.2.5"
+            },
+            "require-dev": {
+                "dealerdirect/phpcodesniffer-composer-installer": "*",
+                "monolog/monolog": "*",
+                "phpcompatibility/php-compatibility": "*",
+                "phpunit/phpunit": "*",
+                "squizlabs/php_codesniffer": "*",
+                "vlucas/phpdotenv": "*"
+            },
+            "suggest": {
+                "monolog/monolog": "To enable logging of HTTP requests and responses."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Maib\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Alexander Minza",
+                    "homepage": "https://www.alexminza.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PHP SDK for maib MIA API",
+            "homepage": "https://github.com/alexminza/maib-mia-sdk-php",
+            "keywords": [
+                "Moldova",
+                "api",
+                "maib",
+                "mia",
+                "payments",
+                "qr",
+                "sdk"
+            ],
+            "support": {
+                "forum": "https://github.com/alexminza/maib-mia-sdk-php/discussions",
+                "issues": "https://github.com/alexminza/maib-mia-sdk-php/issues",
+                "source": "https://github.com/alexminza/maib-mia-sdk-php"
+            },
+            "time": "2026-02-03T10:17:54+00:00"
+        },
         {
             "name": "dealerdirect/phpcodesniffer-composer-installer",
             "version": "v1.2.0",

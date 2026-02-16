@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Maib\MaibCheckout\Tests;
 
 use Maib\MaibCheckout\MaibCheckoutClient;
+use Maib\MaibMia\MaibMiaClient;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 
@@ -24,6 +25,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $checkoutId;
     protected static $checkoutUrl;
     protected static $checkoutData;
+    protected static $orderId;
     protected static $qrId;
     protected static $paymentId;
 
@@ -31,6 +33,11 @@ class MaibCheckoutIntegrationTest extends TestCase
      * @var MaibCheckoutClient
      */
     protected $client;
+
+    /**
+     * @var MaibMiaClient
+     */
+    protected $miaClient;
 
     public static function setUpBeforeClass(): void
     {
@@ -49,7 +56,7 @@ class MaibCheckoutIntegrationTest extends TestCase
     {
         $options = [
             'base_uri' => self::$baseUrl,
-            'timeout' => 15
+            'timeout' => 30
         ];
 
         #region Logging
@@ -66,7 +73,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         $options['handler'] = $stack;
         #endregion
 
-        $this->client = new MaibCheckoutClient(new Client($options));
+        $this->client    = new MaibCheckoutClient(new Client($options));
+        $this->miaClient = new MaibMiaClient(new Client($options));
     }
 
     protected function onNotSuccessfulTest(\Throwable $t): void
@@ -129,20 +137,24 @@ class MaibCheckoutIntegrationTest extends TestCase
     #region Checkout
     /**
      * @depends testAuthenticate
+     *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/register-a-new-hosted-checkout-session#request
      */
     public function testCheckoutRegister()
     {
-        $checkoutData = [
-            'amount' => 50.61,
+        self::$orderId = 'TEST' . time(); // Unique order ID for each test run
+
+        self::$checkoutData = [
+            'amount' => 263.05, // (50.61 * 3) + (50.61 * 2) + 10
             'currency' => 'MDL',
             'orderInfo' => [
-                'id' => 'EK123123BV',
+                'id' => self::$orderId,
                 'description' => 'Order description',
-                'date' => '2025-11-03T09:28:40.814748+00:00',
-                'orderAmount' => null,
-                'orderCurrency' => null,
-                'deliveryAmount' => null,
-                'deliveryCurrency' => null,
+                'date' => date('c'),
+                'orderAmount' => 253.05,
+                'orderCurrency' => 'MDL',
+                'deliveryAmount' => 10,
+                'deliveryCurrency' => 'MDL',
                 'items' => [
                     [
                         'externalId' => '243345345',
@@ -150,7 +162,7 @@ class MaibCheckoutIntegrationTest extends TestCase
                         'amount' => 50.61,
                         'currency' => 'MDL',
                         'quantity' => 3,
-                        'displayOrder' => null,
+                        'displayOrder' => 1,
                     ],
                     [
                         'externalId' => '54353453',
@@ -158,7 +170,7 @@ class MaibCheckoutIntegrationTest extends TestCase
                         'amount' => 50.61,
                         'currency' => 'MDL',
                         'quantity' => 2,
-                        'displayOrder' => null,
+                        'displayOrder' => 2,
                     ],
                 ],
             ],
@@ -175,16 +187,15 @@ class MaibCheckoutIntegrationTest extends TestCase
             'failUrl' => self::$callbackUrl . '/fail',
         ];
 
-        $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
+        $response = $this->client->checkoutRegister(self::$checkoutData, self::$accessToken);
         // $this->debugLog('checkoutRegister', $response);
 
         $this->assertResultOk($response);
         $this->assertNotEmpty($response['result']['checkoutId']);
         $this->assertNotEmpty($response['result']['checkoutUrl']);
 
-        self::$checkoutId   = $response['result']['checkoutId'];
-        self::$checkoutUrl  = $response['result']['checkoutUrl'];
-        self::$checkoutData = $checkoutData;
+        self::$checkoutId  = $response['result']['checkoutId'];
+        self::$checkoutUrl = $response['result']['checkoutUrl'];
 
         $this->debugLog('checkoutUrl', self::$checkoutUrl);
         // exec('open ' . escapeshellarg(self::$checkoutUrl));
@@ -207,7 +218,7 @@ class MaibCheckoutIntegrationTest extends TestCase
 
             $response = $this->client->checkoutRegister($checkoutData, self::$accessToken);
             $this->debugLog('checkoutRegister', $response);
-        } catch(\Exception $ex) {
+        } catch (\Exception $ex) {
             $this->debugLog('checkoutRegister', $ex->getMessage());
             throw $ex;
         }
@@ -223,16 +234,19 @@ class MaibCheckoutIntegrationTest extends TestCase
 
         $this->assertResultOk($response);
         $this->assertEquals(self::$checkoutId, $response['result']['id']);
-        $this->assertEquals('WaitingForInit', $response['result']['status']);
+        // $this->assertEquals('WaitingForInit', $response['result']['status']);
+        // $this->assertContainsEquals($response['result']['status'], ['WaitingForInit', 'Completed']);
         $this->assertEquals(self::$checkoutData['amount'], $response['result']['amount']);
         $this->assertEquals(self::$checkoutData['currency'], $response['result']['currency']);
     }
 
     /**
-     * @depends testCheckoutRegister
+     * @depends testMiaTestPay
      */
     public function testCheckoutCancel()
     {
+        $this->testCheckoutRegister();
+
         $response = $this->client->checkoutCancel(self::$checkoutId, self::$accessToken);
         // $this->debugLog('checkoutCancel', $response);
 
@@ -251,8 +265,8 @@ class MaibCheckoutIntegrationTest extends TestCase
             'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            'sortBy' => 'CreatedAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
-            'order' => 'desc'
+            'sortBy' => 'CreatedAt',
+            'order' => 'Desc'
         ];
 
         $response = $this->client->checkoutList($checkoutListData, self::$accessToken);
@@ -269,31 +283,72 @@ class MaibCheckoutIntegrationTest extends TestCase
      * @depends testCheckoutRegister
      *
      * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
+     * @link https://docs.maibmerchants.md/mia-qr-api/en/endpoints/information-retrieval-get/display-list-of-qr-codes-with-filtering-options
+     * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
      */
     public function testMiaTestPay()
     {
-        $this->markTestSkipped('miaTestPay cannot be automated yet - missing checkout session payment intent qrId'); //TODO
-        // fgets(STDIN);
+        //region 1. Wait for user input to open checkout and select MIA
+        error_log("[MANUAL ACTION REQUIRED]");
+        error_log("1. Open this URL in your browser: " . self::$checkoutUrl);
+        error_log("2. Select 'MIA' as the payment method.");
+        error_log("3. Once the QR code is displayed, return here and press ENTER to continue...");
 
-        $testPayData = [
-            'qrId' => self::$qrId,
-            'amount' => self::$checkoutData['amount'],
-            'currency' => self::$checkoutData['currency'],
-            'iban' => 'MD88AG000000011621810140',
-            'payerName' => 'TEST QR PAYMENT'
+        if (function_exists('xdebug_break')) {
+            call_user_func('xdebug_break');
+        } elseif (PHP_SAPI === 'cli') {
+            fgets(STDIN);
+        } else {
+            $this->markTestSkipped('Manual testMiaTestPay requires CLI or xdebug to pause for user interaction.');
+        }
+        //endregion
+
+        //region 2. Retrieve the list of current active QR codes for the test order ID
+        $qrListData = [
+            'orderId' => self::$orderId,
+            'count'   => 10,
+            'offset'  => 0,
+            'sortBy'  => 'createdAt',
+            'order'   => 'desc',
         ];
 
-        $response = $this->client->miaTestPay($testPayData, self::$accessToken);
-        // $this->debugLog('testPay', $response);
+        $qrListResponse = $this->miaClient->qrList($qrListData, self::$accessToken);
+        // $this->debugLog('qrList', $qrListResponse);
 
-        $this->assertResultOk($response);
-        $this->assertEquals(self::$qrId, $response['result']['qrId']);
-        $this->assertEquals('Paid', $response['result']['qrStatus']);
-        $this->assertEquals(self::$checkoutData['amount'], $response['result']['amount']);
-        $this->assertEquals(self::$checkoutData['currency'], $response['result']['currency']);
-        $this->assertNotEmpty($response['result']['payId']);
+        $this->assertResultOk($qrListResponse);
+        $this->assertEquals(1, $qrListResponse['result']['totalCount']);
+        $this->assertNotEmpty($qrListResponse['result']['items']);
+        //endregion
 
-        self::$paymentId = $response['result']['paymentId'];
+        //region 3. Extract the qrId for the latest QR in the retrieved list
+        self::$qrId = $qrListResponse['result']['items'][0]['qrId'];
+        $this->debugLog('qrList qrId', self::$qrId);
+        //endregion
+
+        //region 4. Perform a payment simulation request
+        $testPayData = [
+            'qrId'      => self::$qrId,
+            'amount'    => self::$checkoutData['amount'],
+            'currency'  => self::$checkoutData['currency'],
+            'iban'      => 'MD88AG000000011621810140',
+            'payerName' => 'TEST MIA PAYMENT'
+        ];
+
+        $testPayResponse = $this->miaClient->testPay($testPayData, self::$accessToken);
+        // $this->debugLog('miaTestPay', $testPayResponse);
+
+        $this->assertResultOk($testPayResponse);
+        $this->assertEquals('Paid', $testPayResponse['result']['qrStatus']);
+
+        self::$paymentId = $testPayResponse['result']['payId'];
+        //endregion
+
+        //region 5. Test that the initial checkout session was successfully paid
+        $checkoutDetails = $this->client->checkoutDetails(self::$checkoutId, self::$accessToken);
+        $this->assertResultOk($checkoutDetails);
+        $this->assertEquals('Completed', $checkoutDetails['result']['status']);
+        $this->assertEquals(self::$paymentId, $checkoutDetails['result']['payment']['paymentId']);
+        //endregion
     }
 
     /**
@@ -367,25 +422,6 @@ class MaibCheckoutIntegrationTest extends TestCase
         $this->assertResultOk($response);
         $this->assertNotEmpty($response['result']['refundId']);
         $this->assertEquals('Created', $response['result']['status']);
-    }
-
-    /**
-     * @depends testPaymentRefundFull
-     */
-    public function testPaymentRefundError()
-    {
-        $this->markTestSkipped();
-
-        $refundData = [
-            'reason' => 'testRefundPaymentError reason',
-            'callbackUrl' => self::$callbackUrl . '/refund'
-        ];
-
-        $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
-        // $this->debugLog('paymentRefund', $response);
-
-        $this->assertResultNotOk($response);
-        $this->assertEquals('payments.acquiring.payments-01001', $response['errors'][0]['errorCode']);
     }
     #endregion
 

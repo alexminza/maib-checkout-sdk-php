@@ -39,6 +39,7 @@
         }
     },
     "require-dev": {
+        "alexminza/maib-mia-sdk": "*",
         "vlucas/phpdotenv": "*",
         "phpunit/phpunit": "*",
         "monolog/monolog": "*",

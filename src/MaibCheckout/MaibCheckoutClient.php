@@ -141,20 +141,6 @@ class MaibCheckoutClient extends GuzzleClient
     }
     #endregion
 
-    #region Payment Simulation
-    /**
-     * Payment Simulation (Sandbox)
-     *
-     * @link https://docs.maibmerchants.md/checkout/api-reference/sandbox-simulation-environment
-     * @link https://docs.maibmerchants.md/mia-qr-api/en/payment-simulation-sandbox
-     */
-    public function miaTestPay(array $testPayData, string $authToken): Result
-    {
-        self::setBearerAuthToken($testPayData, $authToken);
-        return parent::miaTestPay($testPayData);
-    }
-    #endregion
-
     #region Signature
     /**
      * Callback Payload Signature Key Verification
