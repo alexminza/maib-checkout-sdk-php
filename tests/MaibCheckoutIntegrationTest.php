@@ -265,8 +265,8 @@ class MaibCheckoutIntegrationTest extends TestCase
             'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            'sortBy' => 'CreatedAt', //TODO: payments.acquiring.shared.api-0001001 Endpoint has been interrupted with an exception
-            'order' => 'desc'
+            'sortBy' => 'CreatedAt',
+            'order' => 'Desc'
         ];
 
         $response = $this->client->checkoutList($checkoutListData, self::$accessToken);
