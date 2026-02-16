@@ -261,8 +261,8 @@ class MaibCheckoutIntegrationTest extends TestCase
     public function testCheckoutList()
     {
         $checkoutListData = [
-            'count' => 10,
-            'offset' => 0,
+            // 'count' => 10,
+            // 'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
             'sortBy' => 'CreatedAt',
@@ -306,8 +306,8 @@ class MaibCheckoutIntegrationTest extends TestCase
         //region 2. Retrieve the list of current active QR codes for the test order ID
         $qrListData = [
             'orderId' => self::$orderId,
-            'count'   => 10,
-            'offset'  => 0,
+            // 'count'   => 10,
+            // 'offset'  => 0,
             'sortBy'  => 'createdAt',
             'order'   => 'desc',
         ];
@@ -367,14 +367,14 @@ class MaibCheckoutIntegrationTest extends TestCase
     }
 
     /**
-     * @depends testAuthenticate
+     * @depends testPaymentDetails
      */
     public function testPaymentList()
     {
         $params = [
-            'count' => 10,
-            'offset' => 0,
-            // 'paymentId' => self::$paymentId,
+            // 'count' => 10,
+            // 'offset' => 0,
+            'paymentId' => self::$paymentId,
             'sortBy' => 'executedAt',
             'order' => 'asc'
         ];
@@ -383,8 +383,9 @@ class MaibCheckoutIntegrationTest extends TestCase
         // $this->debugLog('paymentList', $response);
 
         $this->assertResultOk($response);
-        $this->assertArrayHasKey('items', $response['result']);
-        $this->assertArrayHasKey('totalCount', $response['result']);
+        $this->assertEquals(1, $response['result']['totalCount']);
+        $this->assertNotEmpty($response['result']['items']);
+        $this->assertEquals(self::$paymentId, $response['result']['items'][0]['paymentId']);
     }
 
     /**
