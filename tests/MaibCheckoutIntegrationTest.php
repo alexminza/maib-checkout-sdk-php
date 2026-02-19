@@ -376,7 +376,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             // 'offset' => 0,
             'paymentId' => self::$paymentId,
             'sortBy' => 'executedAt',
-            'order' => 'asc'
+            'order' => 'Asc'
         ];
 
         $response = $this->client->paymentList($params, self::$accessToken);

@@ -208,7 +208,7 @@ class MaibCheckoutDescription extends Description
                     'count' => ['type' => 'integer'],
                     'offset' => ['type' => 'integer'],
                     'sortBy' => ['type' => 'string'],
-                    'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
+                    'order' => ['type' => 'string', 'enum' => ['Asc', 'Desc']],
                 ],
                 'additionalProperties' => ['location' => 'query'],
             ],
@@ -301,6 +301,9 @@ class MaibCheckoutDescription extends Description
                     'status' => ['type' => 'string'],
                     'amount' => ['type' => 'number'],
                     'currency' => ['type' => 'string'],
+                    'callbackUrl' => ['type' => 'string'],
+                    'successUrl' => ['type' => 'string'],
+                    'failUrl' => ['type' => 'string'],
                     'language' => ['type' => 'string'],
                     'url' => ['type' => 'string'],
                     'order' => [
