@@ -143,9 +143,8 @@ class MaibCheckoutDescription extends Description
                 'type' => 'object',
                 'location' => 'json',
                 'properties' => [
-                    'amount' => ['type' => 'number'],
-                    'reason' => ['type' => 'string'],
-                    'callbackUrl' => ['type' => 'string'],
+                    'amount' => ['type' => 'number', 'required' => true],
+                    'reason' => ['type' => 'string', 'required' => true],
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
@@ -495,6 +494,33 @@ class MaibCheckoutDescription extends Description
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
+
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-refund-details#response-parameters
+            'GetRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'paymentId' => ['type' => 'string'],
+                    'refundType' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'refundReason' => ['type' => 'string'],
+                    'executedAt' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfGetRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'GetRefundResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
             #endregion
         ];
 
@@ -616,6 +642,19 @@ class MaibCheckoutDescription extends Description
                         'payId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ], self::getProperties($models, 'CreateRefundRequest')),
                     'additionalParameters' => ['location' => 'json'],
+                ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-refund-details
+                'paymentRefundDetails' => [
+                    'extends' => 'baseOp',
+                    'httpMethod' => 'GET',
+                    'uri' => '/v2/payments/refunds/{id}',
+                    'summary' => 'Retrieve refund details',
+                    'responseModel' => 'OperationResultOfGetRefundResponse',
+                    'parameters' => [
+                        'authToken' => $authorizationHeader,
+                        'id' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                    ],
+                    'additionalParameters' => ['location' => 'query'],
                 ],
                 #endregion
             ],

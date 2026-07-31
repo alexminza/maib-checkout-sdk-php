@@ -28,6 +28,8 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $orderId;
     protected static $qrId;
     protected static $paymentId;
+    protected static $refundId;
+    protected static $refundAmount;
 
     /**
      * @var MaibCheckoutClient
@@ -294,10 +296,12 @@ class MaibCheckoutIntegrationTest extends TestCase
         error_log("2. Select 'MIA' as the payment method.");
         error_log("3. Once the QR code is displayed, return here and press ENTER to continue...");
 
-        if (function_exists('xdebug_break')) {
+        if (function_exists('xdebug_is_debugger_active') && xdebug_is_debugger_active()) {
             call_user_func('xdebug_break');
         } elseif (PHP_SAPI === 'cli') {
-            fgets(STDIN);
+            if (fgets(STDIN) === false) {
+                $this->markTestSkipped('Manual testMiaTestPay requires interactive CLI input or an active xdebug session.');
+            }
         } else {
             $this->markTestSkipped('Manual testMiaTestPay requires CLI or xdebug to pause for user interaction.');
         }
@@ -393,10 +397,49 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testPaymentRefundPartial()
     {
+        self::$refundAmount = round(self::$checkoutData['amount'] / 2, 2);
+
         $refundData = [
-            'amount' => self::$checkoutData['amount'] / 2,
+            'amount' => self::$refundAmount,
             'reason' => 'testPaymentRefundPartial reason',
-            'callbackUrl' => self::$callbackUrl . '/refund'
+        ];
+
+        $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
+        // $this->debugLog('paymentRefund', $response);
+
+        $this->assertResultOk($response);
+        $this->assertNotEmpty($response['result']['refundId']);
+        $this->assertEquals('Created', $response['result']['status']);
+
+        self::$refundId = $response['result']['refundId'];
+    }
+
+    /**
+     * @depends testPaymentRefundPartial
+     */
+    public function testPaymentRefundDetails()
+    {
+        $response = $this->client->paymentRefundDetails(self::$refundId, self::$accessToken);
+        // $this->debugLog('paymentRefundDetails', $response);
+
+        $this->assertResultOk($response);
+        $this->assertEquals(self::$refundId, $response['result']['id']);
+        $this->assertEquals(self::$paymentId, $response['result']['paymentId']);
+        $this->assertEquals(self::$refundAmount, $response['result']['amount']);
+        $this->assertContains(
+            $response['result']['status'],
+            ['Created', 'Requested', 'Accepted', 'Rejected', 'Manual']
+        );
+    }
+
+    /**
+     * @depends testPaymentRefundDetails
+     */
+    public function testPaymentRefundRemainingAmount()
+    {
+        $refundData = [
+            'amount' => round(self::$checkoutData['amount'] - self::$refundAmount, 2),
+            'reason' => 'testPaymentRefundRemainingAmount reason',
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -408,13 +451,17 @@ class MaibCheckoutIntegrationTest extends TestCase
     }
 
     /**
-     * @depends testPaymentRefundPartial
+     * @depends testAuthenticate
      */
     public function testPaymentRefundFull()
     {
+        // A full refund requires a fresh payment that has not already been partially refunded.
+        $this->testCheckoutRegister();
+        $this->testMiaTestPay();
+
         $refundData = [
+            'amount' => self::$checkoutData['amount'],
             'reason' => 'testPaymentRefundFull reason',
-            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);

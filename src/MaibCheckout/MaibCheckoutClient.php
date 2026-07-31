@@ -139,6 +139,21 @@ class MaibCheckoutClient extends GuzzleClient
         self::setBearerAuthToken($refundData, $authToken);
         return parent::paymentRefund($refundData);
     }
+
+    /**
+     * Retrieve refund details
+     *
+     * @link https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-refund-details
+     */
+    public function paymentRefundDetails(string $refundId, string $authToken): Result
+    {
+        $args = [
+            'id' => $refundId,
+        ];
+
+        self::setBearerAuthToken($args, $authToken);
+        return parent::paymentRefundDetails($args);
+    }
     #endregion
 
     #region Signature

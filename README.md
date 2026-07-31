@@ -149,8 +149,14 @@ $paymentId = $callbackData['paymentId'];
 $refundData = [
     'amount' => 25.00,
     'reason' => 'Test refund reason',
-    // 'callbackUrl' => 'https://example.com/refund' // Optional
 ];
 
 $paymentRefundResponse = $maibCheckoutClient->paymentRefund($paymentId, $refundData, $accessToken);
+```
+
+### Get refund details
+
+```php
+$refundId = $paymentRefundResponse['result']['refundId'];
+$paymentRefundDetailsResponse = $maibCheckoutClient->paymentRefundDetails($refundId, $accessToken);
 ```
