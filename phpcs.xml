@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ruleset name="custom">
     <!-- Configs -->
-    <config name="testVersion" value="7.2-" />
+    <config name="testVersion" value="8.0-" />
 
     <!-- Rules -->
     <!-- Run against the PHPCompatibility ruleset -->

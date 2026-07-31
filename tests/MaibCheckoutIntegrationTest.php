@@ -28,6 +28,8 @@ class MaibCheckoutIntegrationTest extends TestCase
     protected static $orderId;
     protected static $qrId;
     protected static $paymentId;
+    protected static $refundId;
+    protected static $refundAmount;
 
     /**
      * @var MaibCheckoutClient
@@ -265,8 +267,8 @@ class MaibCheckoutIntegrationTest extends TestCase
             // 'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            'sortBy' => 'CreatedAt',
-            'order' => 'Desc'
+            'sortBy' => 'createdAt',
+            'order' => 'desc'
         ];
 
         $response = $this->client->checkoutList($checkoutListData, self::$accessToken);
@@ -294,10 +296,12 @@ class MaibCheckoutIntegrationTest extends TestCase
         error_log("2. Select 'MIA' as the payment method.");
         error_log("3. Once the QR code is displayed, return here and press ENTER to continue...");
 
-        if (function_exists('xdebug_break')) {
+        if (function_exists('xdebug_is_debugger_active') && xdebug_is_debugger_active()) {
             call_user_func('xdebug_break');
         } elseif (PHP_SAPI === 'cli') {
-            fgets(STDIN);
+            if (fgets(STDIN) === false) {
+                $this->markTestSkipped('Manual testMiaTestPay requires interactive CLI input or an active xdebug session.');
+            }
         } else {
             $this->markTestSkipped('Manual testMiaTestPay requires CLI or xdebug to pause for user interaction.');
         }
@@ -376,7 +380,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             // 'offset' => 0,
             'paymentId' => self::$paymentId,
             'sortBy' => 'executedAt',
-            'order' => 'Asc'
+            'order' => 'asc'
         ];
 
         $response = $this->client->paymentList($params, self::$accessToken);
@@ -393,10 +397,49 @@ class MaibCheckoutIntegrationTest extends TestCase
      */
     public function testPaymentRefundPartial()
     {
+        self::$refundAmount = round(self::$checkoutData['amount'] / 2, 2);
+
         $refundData = [
-            'amount' => self::$checkoutData['amount'] / 2,
+            'amount' => self::$refundAmount,
             'reason' => 'testPaymentRefundPartial reason',
-            'callbackUrl' => self::$callbackUrl . '/refund'
+        ];
+
+        $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
+        // $this->debugLog('paymentRefund', $response);
+
+        $this->assertResultOk($response);
+        $this->assertNotEmpty($response['result']['refundId']);
+        $this->assertEquals('Created', $response['result']['status']);
+
+        self::$refundId = $response['result']['refundId'];
+    }
+
+    /**
+     * @depends testPaymentRefundPartial
+     */
+    public function testPaymentRefundDetails()
+    {
+        $response = $this->client->paymentRefundDetails(self::$refundId, self::$accessToken);
+        // $this->debugLog('paymentRefundDetails', $response);
+
+        $this->assertResultOk($response);
+        $this->assertEquals(self::$refundId, $response['result']['id']);
+        $this->assertEquals(self::$paymentId, $response['result']['paymentId']);
+        $this->assertEquals(self::$refundAmount, $response['result']['amount']);
+        $this->assertContains(
+            $response['result']['status'],
+            ['Created', 'Requested', 'Accepted', 'Rejected', 'Manual']
+        );
+    }
+
+    /**
+     * @depends testPaymentRefundDetails
+     */
+    public function testPaymentRefundRemainingAmount()
+    {
+        $refundData = [
+            'amount' => round(self::$checkoutData['amount'] - self::$refundAmount, 2),
+            'reason' => 'testPaymentRefundRemainingAmount reason',
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -408,13 +451,17 @@ class MaibCheckoutIntegrationTest extends TestCase
     }
 
     /**
-     * @depends testPaymentRefundPartial
+     * @depends testAuthenticate
      */
     public function testPaymentRefundFull()
     {
+        // A full refund requires a fresh payment that has not already been partially refunded.
+        $this->testCheckoutRegister();
+        $this->testMiaTestPay();
+
         $refundData = [
+            'amount' => self::$checkoutData['amount'],
             'reason' => 'testPaymentRefundFull reason',
-            'callbackUrl' => self::$callbackUrl . '/refund'
         ];
 
         $response = $this->client->paymentRefund(self::$paymentId, $refundData, self::$accessToken);
@@ -427,18 +474,17 @@ class MaibCheckoutIntegrationTest extends TestCase
     #endregion
 
     #region Signature
-    const CALLBACK_EXAMPLE = '{"checkoutId":"5a4d27a4-79f5-426b-9403-cccdeee81747","paymentIntentId":"baa2a48d-b3ba-48b8-917e-07607d447c4f","merchantId":"37e48a96-37d7-49b3-8373-2e7e69ef8c2e","terminalId":"23456543","amount":193.54,"currency":"MDL","completedAt":"2024-11-23T19:35:00.6772285+02:00","payerName":"John","payerEmail":"Smith","payerPhone":"37368473653","payerIp":"192.175.12.22","orderId":"1142353","orderDescription":"OrderDescriptiondda760d7-a318-451b-8e47-f3377c06dcf5","orderDeliveryAmount":92.65,"orderDeliveryCurrency":8,"paymentId":"379b31a3-8283-43d4-8a7b-eef8c0736a32","paymentAmount":64.76,"paymentCurrency":"MDL","paymentStatus":"Executed","paymentExecutedAt":"2025-05-05T23:38:07.2760698+03:00","providerType":"Ips","senderIban":"NL43RABO1438227787","senderName":"Steven","senderCardNumber":"444433******1111","retrievalReferenceNumber":"ABC324353245"}';
+    const CALLBACK_EXAMPLE = '{"checkoutId": "5a4d27a4-79f5-426b-9403-cccdeee81747","terminalId": "T1234567","amount": 1234.56,"currency": "MDL","completedAt": "2024-11-23T19:35:00.6772285+02:00","payerName": "John","payerEmail": "Smith","payerPhone": "37368473653","payerIp": "192.175.12.22","orderId": "ORDER-2025-0001","orderDescription": "Online purchase of electronics","orderDeliveryAmount": 50.00,"orderDeliveryCurrency": "MDL","paymentId": "379b31a3-8283-43d4-8a7b-eef8c0736a32","paymentAmount": 1234.56,"paymentCurrency": "MDL","paymentStatus": "Executed","paymentExecutedAt": "2025-05-05T23:38:07.2760698+03:00","senderIban": "NL43RABO1438227787","senderName": "Steven","senderCardNumber": "444433******1111","retrievalReferenceNumber": "ABC324353245","processingStatus": "OK","processingStatusCode": "00","approvalCode": "123456","threeDsResult": "Y","threeDsReason": null,"paymentMethod": "Card"}';
 
     public function testValidateCallbackSignatureExample()
     {
         // https://docs.maibmerchants.md/checkout/api-reference/callback-notifications
         $callbackBody       = self::CALLBACK_EXAMPLE;
-        $signatureHeader    = 'sha256=h7/NNr0+SVwqfc1seJNl/m4M4/wzBiZwKHjE1gbmMKA=';
+        $signatureHeader    = 'sha256=mtFkCMxfwj9t2wvY/7JASHLw+K/du4mY8azf1lV0ttg=';
         $signatureTimestamp = '1761032516817';
         $signatureKey       = '67be8e54-ac28-485d-9369-27f6d3c55a27';
 
-        //NOTE: maib official example test is failing
-        $this->assertFalse(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey));
+        $this->assertTrue(MaibCheckoutClient::validateCallbackSignature($callbackBody, $signatureHeader, $signatureTimestamp, $signatureKey));
     }
 
     public function testValidateCallbackSignature()

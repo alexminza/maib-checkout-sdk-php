@@ -143,9 +143,8 @@ class MaibCheckoutDescription extends Description
                 'type' => 'object',
                 'location' => 'json',
                 'properties' => [
-                    'amount' => ['type' => 'number'],
-                    'reason' => ['type' => 'string'],
-                    'callbackUrl' => ['type' => 'string'],
+                    'amount' => ['type' => 'number', 'required' => true],
+                    'reason' => ['type' => 'string', 'required' => true],
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
@@ -160,7 +159,7 @@ class MaibCheckoutDescription extends Description
                     'minAmount' => ['type' => 'number'],
                     'maxAmount' => ['type' => 'number'],
                     'currency' => ['type' => 'string'],
-                    'language' => ['type' => 'string', 'enum' => ['Undefined', 'Ro', 'En', 'Ru']],
+                    'language' => ['type' => 'string', 'enum' => ['undefined', 'ro', 'en', 'ru']],
                     'payerName' => ['type' => 'string'],
                     'payerEmail' => ['type' => 'string'],
                     'payerPhone' => ['type' => 'string'],
@@ -177,8 +176,8 @@ class MaibCheckoutDescription extends Description
                     'completedAtTo' => ['type' => 'string', 'format' => 'date-time'],
                     'count' => ['type' => 'integer'],
                     'offset' => ['type' => 'integer'],
-                    'sortBy' => ['type' => 'string', 'enum' => ['CreatedAt', 'Amount', 'Status', 'ExpiresAt', 'FailedAt', 'CancelledAt', 'CompletedAt']],
-                    'order' => ['type' => 'string', 'enum' => ['Asc', 'Desc']],
+                    'sortBy' => ['type' => 'string', 'enum' => ['createdAt', 'amount', 'status', 'expiresAt', 'failedAt', 'cancelledAt', 'completedAt']],
+                    'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                 ],
                 'additionalProperties' => ['location' => 'query'],
             ],
@@ -208,7 +207,7 @@ class MaibCheckoutDescription extends Description
                     'count' => ['type' => 'integer'],
                     'offset' => ['type' => 'integer'],
                     'sortBy' => ['type' => 'string'],
-                    'order' => ['type' => 'string', 'enum' => ['Asc', 'Desc']],
+                    'order' => ['type' => 'string', 'enum' => ['asc', 'desc']],
                 ],
                 'additionalProperties' => ['location' => 'query'],
             ],
@@ -495,6 +494,33 @@ class MaibCheckoutDescription extends Description
                 ],
                 'additionalProperties' => ['location' => 'json'],
             ],
+
+            // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-refund-details#response-parameters
+            'GetRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'paymentId' => ['type' => 'string'],
+                    'refundType' => ['type' => 'string'],
+                    'amount' => ['type' => 'number'],
+                    'currency' => ['type' => 'string'],
+                    'refundReason' => ['type' => 'string'],
+                    'executedAt' => ['type' => 'string'],
+                    'status' => ['type' => 'string'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
+            'OperationResultOfGetRefundResponse' => [
+                'type' => 'object',
+                'location' => 'json',
+                'properties' => [
+                    'ok' => ['type' => 'boolean'],
+                    'errors' => ['type' => 'array', 'items' => ['$ref' => 'OperationError']],
+                    'result' => ['$ref' => 'GetRefundResponse'],
+                ],
+                'additionalProperties' => ['location' => 'json'],
+            ],
             #endregion
         ];
 
@@ -530,7 +556,7 @@ class MaibCheckoutDescription extends Description
                 'checkoutRegister' => [
                     'extends' => 'baseOp',
                     'httpMethod' => 'POST',
-                    'uri' => '/v2/checkouts/',
+                    'uri' => '/v2/checkouts',
                     'summary' => 'Register a new hosted checkout session',
                     'responseModel' => 'OperationResultOfCreateCheckoutResponse',
                     'parameters' => array_merge([
@@ -616,6 +642,19 @@ class MaibCheckoutDescription extends Description
                         'payId' => ['type' => 'string', 'location' => 'uri', 'required' => true],
                     ], self::getProperties($models, 'CreateRefundRequest')),
                     'additionalParameters' => ['location' => 'json'],
+                ],
+                // https://docs.maibmerchants.md/checkout/api-reference/endpoints/retrieve-refund-details
+                'paymentRefundDetails' => [
+                    'extends' => 'baseOp',
+                    'httpMethod' => 'GET',
+                    'uri' => '/v2/payments/refunds/{id}',
+                    'summary' => 'Retrieve refund details',
+                    'responseModel' => 'OperationResultOfGetRefundResponse',
+                    'parameters' => [
+                        'authToken' => $authorizationHeader,
+                        'id' => ['type' => 'string', 'location' => 'uri', 'required' => true],
+                    ],
+                    'additionalParameters' => ['location' => 'query'],
                 ],
                 #endregion
             ],

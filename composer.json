@@ -26,7 +26,7 @@
         "source": "https://github.com/alexminza/maib-checkout-sdk-php"
     },
     "require": {
-        "php": ">=7.2.5",
+        "php": ">=8.0",
         "guzzlehttp/guzzle": "^7.0",
         "guzzlehttp/guzzle-services": "^1.0"
     },
@@ -49,7 +49,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.2.5"
+            "php": "8.0"
         },
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
