@@ -267,8 +267,8 @@ class MaibCheckoutIntegrationTest extends TestCase
             // 'offset' => 0,
             'minAmount' => 10.00,
             'maxAmount' => 100.00,
-            'sortBy' => 'CreatedAt',
-            'order' => 'Desc'
+            'sortBy' => 'createdAt',
+            'order' => 'desc'
         ];
 
         $response = $this->client->checkoutList($checkoutListData, self::$accessToken);
@@ -380,7 +380,7 @@ class MaibCheckoutIntegrationTest extends TestCase
             // 'offset' => 0,
             'paymentId' => self::$paymentId,
             'sortBy' => 'executedAt',
-            'order' => 'Asc'
+            'order' => 'asc'
         ];
 
         $response = $this->client->paymentList($params, self::$accessToken);
